@@ -159,9 +159,19 @@
 </div>
 
 <script>
+/* ===== Fuente de datos en vivo (SIN cuenta de servicio ni JSON) =====
+   Las dos pestañas viven en el mismo archivo. Estas URL leen cada pestaña como CSV.
+   Para que funcionen, el Sheet debe estar compartido como
+   "Cualquier persona con el enlace → Lector" (ver instrucciones).
+   Si lo dejas en '' esa pestaña usa el snapshot embebido y no se actualiza sola. */
+const SHEET_ID = '1csPussbNeV2rgwC1cwugwAfhNMmlrUWuSVXVgAOnOjU';
+const CSV = (gid) => `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=${gid}`;
+const FUENTE_PITACO  = CSV('1114075908');   // pestaña Pitaco
+const FUENTE_DRAFTEA = CSV('793170873');    // pestaña Draftea
+
 /* ===== datasets (una pestaña por empresa) ===== */
 const DATASETS = {
-  pitaco:  { label:'Pitaco',  src:'data-pitaco.csv',  csv:`Name,Brand,Diretory,Subárea,Actual Role,Propuesta roles,Direct leader,Area manager,Reason
+  pitaco:  { label:'Pitaco',  src:FUENTE_PITACO,  csv:`Name,Brand,Diretory,Subárea,Actual Role,Propuesta roles,Direct leader,Area manager,Reason
 Adrielle Andrade Carvalho,Pitaco,Technology,,Software Engineer II,,Bento Bruno Pereira,Ricardo Augusto Gomes da Costa,
 Alana Fanny de Macedo,Pitaco,Finance,,Accounting and Tax Jr. Analyst,,Raquel Freire de Almeida,Thiago Guerrera Martins,
 Alejandro Marques Carrasco Arriagada,Pitaco,Finance,,Head of Finance,,Thiago Guerrera Martins,Thiago Guerrera Martins,PDV
@@ -340,7 +350,7 @@ Vitoria Schelbauer Trentin,Pitaco,Legal,,Jr. Compliance,,Fernando Pedro Zandonad
 Washington da Silva Farias,Pitaco,CX,,Customer Support Assistant,,Leticia Maria dos Santos,Suzan Carolina Monteiro,Layoff Mayo
 Yure Araujo dos Santos,Pitaco,Operations,,Sr. Business Operations Analyst,,André Augusto Machado Santos,André Augusto Machado Santos,PDV
 Yuri Inoue Duarte,Pitaco,Marketing,Motion Design,Motion Designer,,Thiago José Cotrim do Amaral Arantes,Thiago José Cotrim do Amaral Arantes,` },
-  draftea: { label:'Draftea', src:'data-draftea.csv', csv:`Name,Brand,Diretory,Subárea,Actual Role,Area manager,Direct leader,Reason
+  draftea: { label:'Draftea', src:FUENTE_DRAFTEA, csv:`Name,Brand,Diretory,Subárea,Actual Role,Area manager,Direct leader,Reason
 Agustin Alejandro Silio,Draftea,Engineering,Backend,Software Engineer,Joe Cohen,Leandro Mancini,
 Agustin de Sautu Riestra,Draftea,Engineering,Backend,Tech Lead,Joe Cohen,Joe Cohen,
 Agustín Pazos,Draftea,Engineering,Backend,Software Engineer,Joe Cohen,Leandro Mancini,Voluntaria
