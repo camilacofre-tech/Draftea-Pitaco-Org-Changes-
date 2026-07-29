@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Estructura antes de la adquisición · Pitaco y Draftea</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#f4f5f7; --grid:#e6e8ee; --ink:#191b2b; --ink-2:#5c6273; --line:#dcdfe7; --card:#ffffff;
+    --stay:#17876a; --stay-bg:#e2f3ec; --stay-tx:#0e5a44; --stay-wash:#ffffff;
+    --vol:#3b82c4;  --vol-bg:#e5eefb;  --vol-tx:#24557f;  --vol-wash:#f5f9fe;
+    --inv:#7c5cff;  --inv-bg:#ece7ff;  --inv-tx:#4a37a8;  --inv-wash:#f8f6ff;
+    --lmar:#d64550; --lmar-bg:#fbe4e6; --lmar-tx:#a12730; --lmar-wash:#fdf5f5;
+    --lmay:#e08a2b; --lmay-bg:#fbeed9; --lmay-tx:#8f561a; --lmay-wash:#fdf8f0;
+    --pdv:#8b93a7;  --pdv-bg:#ebedf2;  --pdv-tx:#4f5665;  --pdv-wash:#f7f8fa;
+    --new:#0ea5a5;  --new-bg:#d7f2f0;  --new-tx:#0a6b68;  --new-wash:#f2fbfa;
+    --display:'Space Grotesk', -apple-system, sans-serif;
+    --body:'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;font-family:var(--body);background:var(--paper);color:var(--ink);overflow:hidden}
+  #app{display:flex;flex-direction:column;height:100vh}
+  header{padding:12px 22px 14px;background:#fff;border-bottom:1px solid var(--line);z-index:10}
+
+  /* company tabs */
+  .tabs{display:inline-flex;gap:4px;background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:4px;margin-bottom:14px}
+  .tabs button{font-family:var(--display);font-size:14px;font-weight:600;border:none;background:none;color:var(--ink-2);
+    padding:8px 22px;border-radius:9px;cursor:pointer;letter-spacing:.2px}
+  .tabs button.on{background:var(--ink);color:#fff}
+
+  .toprow{display:flex;align-items:flex-end;gap:22px;flex-wrap:wrap}
+  .titleblock h1{font-family:var(--display);font-size:20px;font-weight:700;margin:0;letter-spacing:-.2px}
+  .titleblock .sub{font-size:12.5px;color:var(--ink-2);margin-top:3px}
+  .spacer{flex:1}
+
+  .kpis{display:flex;align-items:center;gap:26px;margin-top:15px;flex-wrap:wrap}
+  .kpi{display:flex;flex-direction:column;gap:1px}
+  .kpi .v{font-family:var(--display);font-size:26px;font-weight:700;line-height:1}
+  .kpi .k{font-size:11px;color:var(--ink-2);letter-spacing:.3px;text-transform:uppercase;font-weight:600}
+  .kpi.drop .v{color:var(--lmar)}
+  .barwrap{flex:1;min-width:260px}
+  .barwrap .caption{display:flex;justify-content:space-between;font-size:11px;color:var(--ink-2);margin-bottom:5px}
+  .bar{display:flex;height:16px;border-radius:6px;overflow:hidden;border:1px solid var(--line)}
+  .bar span{display:block;height:100%}
+  .bar span:hover{filter:brightness(.92)}
+
+  #stage{position:relative;flex:1;overflow:hidden;cursor:grab;
+    background:radial-gradient(circle at 1px 1px, var(--grid) 1px, transparent 0) 0 0/24px 24px, var(--paper)}
+  #stage.grabbing{cursor:grabbing}
+  svg#tree{width:100%;height:100%;display:block}
+  .link{fill:none;stroke:#c4c8d4;stroke-width:1.5px}
+  .link.on-path{stroke:var(--ink);stroke-width:2.2px}
+
+  .node-card{height:100%;border-radius:11px;padding:9px 12px 9px 13px;background:var(--card);
+    border:1px solid var(--line);border-left:6px solid var(--pdv);
+    display:flex;flex-direction:column;justify-content:center;gap:3px;
+    box-shadow:0 1px 3px rgba(20,20,50,.07);cursor:pointer;transition:transform .12s,box-shadow .12s,opacity .2s;overflow:hidden}
+  .node-card:hover{transform:translateY(-1px);box-shadow:0 8px 20px rgba(20,20,50,.14)}
+  .node-inner{position:relative}
+  .node-name{font-size:13px;font-weight:600;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--ink)}
+  .node-role{font-size:11px;color:var(--ink-2);line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .node-tags{display:flex;gap:5px;align-items:center;margin-top:2px}
+  .tag{font-size:9px;font-weight:700;letter-spacing:.3px;padding:2px 7px;border-radius:20px;line-height:1;white-space:nowrap}
+  .tag.dept{background:#eef0f5;color:#5a6072;text-transform:uppercase;font-size:8.5px}
+
+  .st-stay{border-left-color:var(--stay);background:var(--stay-wash)}  .st-stay .tag.status{background:var(--stay-bg);color:var(--stay-tx)}
+  .st-vol{border-left-color:var(--vol);background:var(--vol-wash)}     .st-vol .tag.status{background:var(--vol-bg);color:var(--vol-tx)}
+  .st-inv{border-left-color:var(--inv);background:var(--inv-wash)}     .st-inv .tag.status{background:var(--inv-bg);color:var(--inv-tx)}
+  .st-lmar{border-left-color:var(--lmar);background:var(--lmar-wash)}  .st-lmar .tag.status{background:var(--lmar-bg);color:var(--lmar-tx)}
+  .st-lmay{border-left-color:var(--lmay);background:var(--lmay-wash)}  .st-lmay .tag.status{background:var(--lmay-bg);color:var(--lmay-tx)}
+  .st-pdv{border-left-color:var(--pdv);background:var(--pdv-wash)}     .st-pdv .tag.status{background:var(--pdv-bg);color:var(--pdv-tx)}
+  .st-new{border-left-color:var(--new);background:var(--new-wash)}     .st-new .tag.status{background:var(--new-bg);color:var(--new-tx)}
+  .st-root{border-left-color:var(--ink);background:var(--ink)}
+  .st-root .node-name,.st-root .node-role{color:#fff}
+
+  .node.dim .node-card{opacity:.24;box-shadow:none}
+  .node.match .node-card{outline:3px solid #ffcf3f;outline-offset:1px}
+
+  .toggle{position:absolute;left:50%;transform:translateX(-50%);bottom:-13px;min-width:26px;height:26px;padding:0 9px;
+    border-radius:14px;background:#fff;border:1.5px solid var(--line);display:flex;align-items:center;justify-content:center;
+    font-size:12.5px;font-weight:700;color:var(--ink);box-shadow:0 3px 7px rgba(20,20,50,.18);white-space:nowrap;font-family:var(--display)}
+
+  .floaters{position:absolute;right:16px;bottom:16px;display:flex;flex-direction:column;gap:8px;z-index:5}
+  .zbtn{width:38px;height:38px;border-radius:10px;background:#fff;border:1px solid var(--line);color:var(--ink);
+    font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(20,20,50,.08)}
+  .zbtn:hover{border-color:var(--ink)}
+  .zbtn.small{font-size:11px;font-weight:600;font-family:var(--body)}
+
+  .legend{position:absolute;left:16px;bottom:16px;background:#fff;border:1px solid var(--line);border-radius:12px;
+    padding:12px 14px;z-index:5;box-shadow:0 8px 22px rgba(20,20,50,.12)}
+  .legend h3{margin:0 0 9px;font-size:10px;letter-spacing:.7px;text-transform:uppercase;color:var(--ink-2);font-weight:700}
+  .legend .row{display:flex;align-items:center;gap:9px;margin:5px 0;font-size:12px;cursor:pointer;user-select:none}
+  .legend .row.off{opacity:.4}
+  .legend .sw{width:16px;height:16px;border-radius:5px;flex:none}
+  .legend .ct{margin-left:auto;font-family:var(--display);font-weight:600;color:var(--ink-2);font-size:11px;padding-left:12px}
+
+  .syncpill{position:absolute;left:16px;top:16px;background:#fff;border:1px solid var(--line);border-radius:20px;
+    padding:6px 12px;font-size:11px;z-index:5;color:var(--ink-2);display:flex;align-items:center;gap:7px;box-shadow:0 2px 6px rgba(20,20,50,.08)}
+  .dotsync{width:8px;height:8px;border-radius:50%;background:#9aa0ad;flex:none}
+  .dotsync.live{background:var(--stay);box-shadow:0 0 0 3px rgba(23,135,106,.16)}
+  .dotsync.snap{background:var(--lmay)}
+  .dotsync.loading{background:var(--vol);animation:pulse 1s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+
+  .field{position:relative;display:flex;align-items:center}
+  .field svg{position:absolute;left:11px;width:15px;height:15px;color:var(--ink-2);pointer-events:none}
+  input[type="search"]{font-family:var(--body);background:var(--paper);border:1px solid var(--line);color:var(--ink);
+    border-radius:9px;padding:8px 12px 8px 32px;font-size:13px;outline:none;width:220px}
+  input[type="search"]:focus{border-color:var(--ink)}
+  ::placeholder{color:var(--ink-2)}
+  @media (max-width:760px){ .legend{display:none} input[type="search"]{width:130px} .kpi.hideSm{display:none} }
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <div class="tabs" id="tabs">
+      <button data-ds="pitaco" class="on">Pitaco</button>
+      <button data-ds="draftea">Draftea</button>
+    </div>
+    <div class="toprow">
+      <div class="titleblock">
+        <h1 id="title">Pitaco · Estructura antes de la adquisición</h1>
+        <div class="sub">Organigrama y cambios por motivo · diciembre 2025</div>
+      </div>
+      <div class="spacer"></div>
+      <div class="field">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input type="search" id="search" placeholder="Buscar persona o rol…" autocomplete="off">
+      </div>
+    </div>
+    <div class="kpis">
+      <div class="kpi"><span class="v" id="kTotal">0</span><span class="k">Personas</span></div>
+      <div class="kpi"><span class="v" id="kStay" style="color:var(--stay)">0</span><span class="k">Siguen</span></div>
+      <div class="kpi drop"><span class="v" id="kOut">0</span><span class="k">Salidas</span></div>
+      <div class="kpi" id="kpiNew" style="display:none"><span class="v" id="kNew" style="color:var(--new)">0</span><span class="k">Nuevos ingresos</span></div>
+      <div class="kpi drop hideSm"><span class="v" id="kPct">0%</span><span class="k">% salidas</span></div>
+      <div class="barwrap">
+        <div class="caption"><span id="barCap">Composición de la estructura</span><span id="barTot"></span></div>
+        <div class="bar" id="bar"></div>
+      </div>
+    </div>
+  </header>
+
+  <div id="stage">
+    <svg id="tree"><g id="viewport"><g id="links"></g><g id="nodes"></g></g></svg>
+    <div class="syncpill" id="syncpill"><span class="dotsync" id="dotsync"></span><span id="syncText">Snapshot local</span></div>
+    <div class="legend" id="legend"><h3>Motivo</h3></div>
+    <div class="floaters">
+      <button class="zbtn" id="zoomIn">+</button>
+      <button class="zbtn" id="zoomOut">−</button>
+      <button class="zbtn small" id="fit">Ajustar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ===== datasets (una pestaña por empresa) ===== */
+const DATASETS = {
+  pitaco:  { label:'Pitaco',  src:'data-pitaco.csv',  csv:`Name,Brand,Diretory,Subárea,Actual Role,Propuesta roles,Direct leader,Area manager,Reason
+Adrielle Andrade Carvalho,Pitaco,Technology,,Software Engineer II,,Bento Bruno Pereira,Ricardo Augusto Gomes da Costa,
+Alana Fanny de Macedo,Pitaco,Finance,,Accounting and Tax Jr. Analyst,,Raquel Freire de Almeida,Thiago Guerrera Martins,
+Alejandro Marques Carrasco Arriagada,Pitaco,Finance,,Head of Finance,,Thiago Guerrera Martins,Thiago Guerrera Martins,PDV
+Alexandre Fonseca Silva Campos,Pitaco,Technology,,Software Engineer III,,Guilherme Furlan,Ricardo Augusto Gomes da Costa,
+Allaf Lins Mendes ,Pitaco,CX,,Jr Customer Support Assistant,,Leonardo Henrique Martins da Silva ,Suzan Carolina Monteiro,
+Allison Noronha Silvério,Pitaco,Marketing,Copywriting,Sr. Copywriter,,Thiago José Cotrim do Amaral Arantes,Thiago José Cotrim do Amaral Arantes,
+Alysson Rodrigues Pereira Soares,Pitaco,Operations,,Community Intern,,Christian Pereira Vaz da Silva,Cássio Vasconcelos Soares Menezes ,Layoff Mayo
+Ana Clara Vilharquide Firmino,Pitaco,Operations,,Settlement Leader,,Cássio Vasconcelos Soares Menezes ,Cássio Vasconcelos Soares Menezes ,Involuntarias
+Ana Clara Zoppi Serpa,Pitaco,Technology,,Software Engineer II,,Bento Bruno Pereira ,Ricardo Augusto Gomes da Costa,
+André Augusto Machado Santos,Pitaco,Founders,,CEO,,-,,
+André Hermenegildo Costa Silva,Pitaco,Data,,Data Science Manager II,,Ricardo Augusto Gomes da Costa,Ricardo Augusto Gomes da Costa,Involuntarias
+Andre Luis Krasinski,Pitaco,Data,,Data Engineer III,,Ricardo Augusto Gomes da Costa,Ricardo Augusto Gomes da Costa,
+Andressa dos Santos Rodrigues,Pitaco,CX,,Jr Customer Support Assistant,,Renan Bispo dos Santos Silva,Suzan Carolina Monteiro,Involuntarias
+Andressa Martins de Oliveira,Pitaco,Operations,,Jr. Settlement Analyst,,Christian Pereira Vaz da Silva,Cássio Vasconcelos Soares Menezes ,
+Andressa Stefany Queiroz Silva,Pitaco,Operations,,Jr Antifraud Analyst II,,Yure Araujo dos Santos,Cássio Vasconcelos Soares Menezes ,
+Arthur Coelho Custódio,Pitaco,Operations,,Jr Pricing Analyst,,Sávio Assunção da Costa Sá Filho,Cássio Vasconcelos Soares Menezes ,
+Athos Monteiro dos Santos,Pitaco,CX,,Customer Support Assistant,,Leticia Maria dos Santos,Suzan Carolina Monteiro,Involuntarias
+Barbara de Paula Barbosa,Pitaco,Finance,,Procurement Analyst,,Alejandro Marques Carrasco Arriagada,Thiago Guerrera Martins,
+Beatriz Barradas Figueiredo,Pitaco,Data,,Data Scientist I,,André Hermenegildo Costa Silva,Ricardo Augusto Gomes da Costa,Layoff Marzo
+Beatriz Costa Souza ,Pitaco,CX,,Customer Support  Specialist III,,Suzan Carolina Monteiro,Suzan Carolina Monteiro,Involuntarias
+Beatriz Morais Silva da Costa,Pitaco,Technology,,Software Engineer II,,Guilherme Furlan,Ricardo Augusto Gomes da Costa,Layoff Mayo
+Bento Bruno Pereira,Pitaco,Technology,,Engineering Manager I,,Ricardo Augusto Gomes da Costa,Ricardo Augusto Gomes da Costa,
+Breno Augusto Saraiva Valente,Pitaco,Data,,Data Scientist II,,Ricardo Augusto Gomes da Costa,Ricardo Augusto Gomes da Costa,Voluntaria
+Bruna Lopes Fontoura,Pitaco,Marketing,-,Key Account ,,Thiago José Cotrim do Amaral Arantes,Thiago José Cotrim do Amaral Arantes,
+Bruno Ferreira Coelho,Pitaco,Technology,,Sr. Software Engineer,,Ricardo Augusto Gomes da Costa,Ricardo Augusto Gomes da Costa,Layoff Marzo
+Bruno Kauan Lunardon,Pitaco,Data,,Data Scientist I,,André Hermenegildo Costa Silva,Ricardo Augusto Gomes da Costa,Voluntaria
+Bruno Luiz Correia Araújo,Pitaco,Technology,,Software Engineer I,,Guilherme Furlan,Ricardo Augusto Gomes da Costa,
+Bruno Oliveira Luvisan,Pitaco,CX,,Jr Customer Support Assistant,,Leonardo Henrique Martins da Silva ,Suzan Carolina Monteiro,
+Bruno Otto Cavalcante Vieira,Pitaco,CX,,Customer Support Assistant,,Clevson Costa Goncalves,Suzan Carolina Monteiro,Layoff Marzo
+Bruno Pereira Fornaro,Pitaco,Data,,Data Scientist II,,André Hermenegildo Costa Silva,Ricardo Augusto Gomes da Costa,
+Bruno Tenório da Silva,Pitaco,CX,,Jr Customer Support Assistant,,Leonardo Henrique Martins da Silva ,Suzan Carolina Monteiro,Involuntarias
+Caio Chaves Montenegro,Pitaco,Operations,,Settlement Analyst,,Christian Pereira Vaz da Silva,Cássio Vasconcelos Soares Menezes ,Layoff Mayo
+Caio Menezes Thiers,Pitaco,Finance,,Treasury Manager,,Alejandro Marques Carrasco Arriagada,Thiago Guerrera Martins,
+Camila Nogueira de Abreu,Pitaco,Operations,,Sports Content Analyst,,Pedro Alves do Amaral Santos,Cássio Vasconcelos Soares Menezes ,
+Camila Reis Michelato,Pitaco,Product,,Sr. Product Manager,,João Cordani Tourinho Dantas,André Augusto Machado Santos,
+Carlos Eduardo Dias Giacomini,Pitaco,Technology,,Sr. Software Engineer,,Guilherme Furlan,Ricardo Augusto Gomes da Costa,
+Carlos Eduardo Dias Vinagre Neto,Pitaco,Technology,,Software Engineer II,,Bento Bruno Pereira,Ricardo Augusto Gomes da Costa,
+Carlos Esteves Cordova Junior,Pitaco,Data,,Staff Data Engineer,,Ricardo Augusto Gomes da Costa,Ricardo Augusto Gomes da Costa,
+Carlos Filipe Alves Lima,Pitaco,Marketing,Design,Designer,,Thiago José Cotrim do Amaral Arantes,Thiago José Cotrim do Amaral Arantes,
+Caroline Araújo Pereira,Pitaco,CX,,Customer Support Assistant,,Leticia Maria dos Santos,Suzan Carolina Monteiro,Layoff Mayo
+Cássio Vasconcelos Soares Menezes ,Pitaco,Operations,,Business Operations Sr. Manager,,Jens Christian Eider,André Augusto Machado Santos,PDV
+Cayo Henrique Rocon Rocha,Pitaco,CX,,Customer Support Assistant,,Leticia Maria dos Santos,Suzan Carolina Monteiro,
+Christian Pereira Vaz da Silva,Pitaco,Operations,,Jr. Settlement Team Leader,,Cássio Vasconcelos Soares Menezes ,Cássio Vasconcelos Soares Menezes ,Layoff Marzo
+Claudio de Faria Dantas,Pitaco,Technology,,Software Engineer I,,Bento Bruno Pereira,Ricardo Augusto Gomes da Costa,
+Cleomar Felipe Rabelo Antoszczyszyn,Pitaco,Data,,Data Scientist I,,Ricardo Augusto Gomes da Costa,Ricardo Augusto Gomes da Costa,PDV
+Clevson Costa Goncalves,Pitaco,CX,,Jr CX Team Leader,,Suzan Carolina Monteiro,Suzan Carolina Monteiro,
+Daniel das Chagas Soares,Pitaco,Operations,,Jr. Market Intelligence Analyst,,Pedro Alves do Amaral Santos,Cássio Vasconcelos Soares Menezes ,Layoff Marzo
+Daniel Mousinho Figueira Vargas,Pitaco,Marketing,,Creative Manager,,Thiago José Cotrim do Amaral Arantes,Thiago José Cotrim do Amaral Arantes,
+Danilo Andrade Fontenele,Pitaco,Operations,,Trading Leader,,Cássio Vasconcelos Soares Menezes ,Cássio Vasconcelos Soares Menezes ,
+Davi Henrique Silva Guimarães,Pitaco,Technology,,SRE Engineer II,,Ricardo Augusto Gomes da Costa,Ricardo Augusto Gomes da Costa,Voluntaria
+Demetrius Moreira Panovitch,Pitaco,Technology,,Software Engineer II,,Guilherme Furlan,Ricardo Augusto Gomes da Costa,
+Diego Guimarães Pereira,Pitaco,Data,,Data Engineer II,,Ricardo Augusto Gomes da Costa,Ricardo Augusto Gomes da Costa,
+Eduardo Vinicius Barbosa Rossi,Pitaco,Technology,,Software Engineer I,,Guilherme Furlan,Ricardo Augusto Gomes da Costa,
+Elisa Duboc de Albuquerque,Pitaco,People,,People Manager,,André Augusto Machado Santos,André Augusto Machado Santos,Layoff Mayo
+Elthon Lima Silva,Pitaco,Finance,,Accounting and Tax Analyst,,Raquel Freire de Almeida,Thiago Guerrera Martins,
+Erick Luis Moraes de Sousa,Pitaco,Technology,,Principal Software Engineer,,Ricardo Augusto Gomes da Costa,Ricardo Augusto Gomes da Costa,Voluntaria
+Fabrício Dalvi Venturim,Pitaco,Data,,Data Scientist II,,Ricardo Augusto Gomes da Costa,Ricardo Augusto Gomes da Costa,Voluntaria
+Felipe Alves Dourado,Pitaco,Finance,,FP&A Specialist,,Alejandro Marques Carrasco Arriagada,Thiago Guerrera Martins,
+Fernando Franco de Lacerda Neto,Pitaco,Technology,,Software Engineer II,,Guilherme Furlan,Ricardo Augusto Gomes da Costa,
+Fernando Pedro Zandonadi Vasconcelos,Pitaco,Legal,,Head of Compliance ,,Rafael Marchetti Marcondes,Rafael Marchetti Marcondes,
+Filipe Andrade Feitosa,Pitaco,Technology,,Sr. Tech Ops,,Marcos Jai Hoon Han,Ricardo Augusto Gomes da Costa,
+Gabriel Aguiar Mourão,Pitaco,Operations,,Jr Settlement Analyst,,Christian Pereira Vaz da Silva,Cássio Vasconcelos Soares Menezes ,
+Gabriel Henrique Dias Simplicio,Pitaco,Operations,,Jr. Market Intelligence Analyst,,Pedro Alves do Amaral Santos,Cássio Vasconcelos Soares Menezes ,Layoff Marzo
+Gabriel Marcondes Caires da Rocha,Pitaco,Data,,Data Scientist I,,André Hermenegildo Costa Silva,Ricardo Augusto Gomes da Costa,
+Gabriel Vaz de Freitas,Pitaco,CX,,Jr Customer Support Assistant,,Mirelli Carvalho Bezerra,Suzan Carolina Monteiro,Layoff Mayo
+Gabriel Victor Pinto do Vale,Pitaco,Technology,,Software Engineer III,,Guilherme Furlan,Ricardo Augusto Gomes da Costa,
+Giovanna Choinski,Pitaco,Product,,Product Designer,,Tiago Cocci Ramon,André Augusto Machado Santos,
+Guilherme Carvalho Cunha,Pitaco,Data,,Data Scientist Intern,,Ricardo Augusto Gomes da Costa,Ricardo Augusto Gomes da Costa,Layoff Mayo
+Guilherme Furlan,Pitaco,Technology,,Engineering Sr. Manager,,Ricardo Augusto Gomes da Costa,Ricardo Augusto Gomes da Costa,
+Guilherme Henrique Kayano,Pitaco,Marketing,,Performance Specialist,,Thiago José Cotrim do Amaral Arantes,Thiago José Cotrim do Amaral Arantes,
+Guilherme Lourenço de Jesus,Pitaco,Operations,,Trading Analyst,,Ígor William Faria de Sá,Cássio Vasconcelos Soares Menezes ,
+Guilherme Nunes Martins,Pitaco,Operations,,Jr. Trading Analyst,,Ígor William Faria de Sá,Cássio Vasconcelos Soares Menezes ,
+Gunther Rodrigues Baessa,Pitaco,Operations,,Jr. Trading Analyst,,Ígor William Faria de Sá,Cássio Vasconcelos Soares Menezes ,
+Gustavo Costa da Silva Dias,Pitaco,People,,Assistente de Facilities,,Elisa Duboc de Albuquerque,André Augusto Machado Santos,Voluntaria
+Gustavo Jabor,Pitaco,Operations,,Jr Pricing Analyst,,Sávio Assunção da Costa Sá Filho,Cássio Vasconcelos Soares Menezes ,Layoff Marzo
+Gustavo Souza Sombra,Pitaco,Operations,,Jr. Trading Analyst,,Ígor William Faria de Sá,Cássio Vasconcelos Soares Menezes ,
+Heloísa de Medeiros Diniz,Pitaco,Legal,,Regulatory Counsel,,Rafael Marchetti Marcondes,Rafael Marchetti Marcondes,
+Henrique Souza Prado,Pitaco,Marketing,,Head of Acquisition,,Thiago José Cotrim do Amaral Arantes,Thiago José Cotrim do Amaral Arantes,
+Iago de Macedo Mendes Cavalcante,Pitaco,Product,,Sr. Product Manager,,João Cordani Tourinho Dantas,André Augusto Machado Santos,
+Igor Patrício Michels,Pitaco,Data,,Data Scientist III,,Ricardo Augusto Gomes da Costa,Ricardo Augusto Gomes da Costa,Voluntaria
+Ígor William Faria de Sá,Pitaco,Operations,,Settlement  Team Leader,,Cássio Vasconcelos Soares Menezes ,Cássio Vasconcelos Soares Menezes ,Voluntaria
+Jean Lucas Flores de Morais,Pitaco,Operations,,Trading Analyst,,Sávio Assunção da Costa Sá Filho,Cássio Vasconcelos Soares Menezes ,Voluntaria
+Jens Christian Eider,Pitaco,Operations,,VP of Sportsbook,,André Augusto Machado Santos,André Augusto Machado Santos,Layoff Marzo
+Jeremias Lima Abreu,Pitaco,Technology,,Software Engineer III,,Ricardo Augusto Gomes da Costa,Ricardo Augusto Gomes da Costa,Voluntaria
+Jessica Cavalcante Barbosa,Pitaco,CX,,Jr Customer Support Assistant,,Mirelli Carvalho Bezerra,Suzan Carolina Monteiro,Voluntaria
+Jéssica Kelly Araújo dos Santos,Pitaco,CX,,Jr Customer Support Assistant,,Renan Bispo dos Santos Silva,Suzan Carolina Monteiro,
+Jéssica Vitória de Sousa,Pitaco,CX,,Customer Support Assistant,,Mirelli Carvalho Bezerra,Suzan Carolina Monteiro,Involuntarias
+Joalison Allan de Medeiros Felix,Pitaco,Marketing,Motion Design,Motion Designer,,Thiago José Cotrim do Amaral Arantes,Thiago José Cotrim do Amaral Arantes,
+João Alberto Figueiredo Sequeira,Pitaco,Data,,Data Scientist III,,Ricardo Augusto Gomes da Costa,Ricardo Augusto Gomes da Costa,
+João Cordani Tourinho Dantas,Pitaco,Product,,Head of Product ,,André Augusto Machado Santos,André Augusto Machado Santos,Voluntaria
+João Henrique Santana,Pitaco,Technology,,Software Engineer II,,Guilherme Furlan,Ricardo Augusto Gomes da Costa,
+João Victor Bevenuto da Silva,Pitaco,CX,,Jr Customer Support Assistant,,Renan Bispo dos Santos Silva,Suzan Carolina Monteiro,Layoff Marzo
+João Victor Martins Rey ,Pitaco,Technology,,Software Engineer III,,Guilherme Furlan,Ricardo Augusto Gomes da Costa,
+João Victor Soares Aleixo,Pitaco,Technology,,Software Engineer II,,Bento Bruno Pereira,Ricardo Augusto Gomes da Costa,
+Joice Caroline Batista da Hora,Pitaco,CX,,Jr Customer Support Assistant,,Luan Julião de Freitas,Suzan Carolina Monteiro,
+Júlia Beatriz Fernandes ,Pitaco,Legal,,Legal Intern,,Rafael Marchetti Marcondes,Rafael Marchetti Marcondes,
+Julia Josias da Silva,Pitaco,CX,,Jr Customer Support Assistant,,Renan Bispo dos Santos Silva,Suzan Carolina Monteiro,Involuntarias
+Julia Maria Martinghi,Pitaco,Marketing,-,Key Account  ,,Rafael Marchetti Marcondes,Thiago José Cotrim do Amaral Arantes,Voluntaria
+Karine Cristina de Souza Ribeiro ,Pitaco,CX,,Jr Customer Support Assistant,,Clevson Costa Goncalves,Suzan Carolina Monteiro,Involuntarias
+Kaue Santos Pereira,Pitaco,CX,,Jr Customer Support Assistant,,Clevson Costa Goncalves,Suzan Carolina Monteiro,Layoff Mayo
+Kayan Martins Miguel,Pitaco,Operations,,Jr Pricing Analyst,,Sávio Assunção da Costa Sá Filho,Cássio Vasconcelos Soares Menezes ,Layoff Mayo
+Larissa Diniz Domeni ,Pitaco,Marketing,,Design Assistant,,Thiago José Cotrim do Amaral Arantes,Thiago José Cotrim do Amaral Arantes,
+Laura Magdalena Porto Laprebendere,Pitaco,Marketing,,Affiliate Manager,,Thiago José Cotrim do Amaral Arantes,Thiago José Cotrim do Amaral Arantes,Voluntaria
+Léo Hernandes de Vasconcelos,Pitaco,Technology,,Software Engineer III,,Guilherme Furlan,Ricardo Augusto Gomes da Costa,
+Leonardo Henrique Martins da Silva ,Pitaco,CX,,Jr CX Team Leader,,Suzan Carolina Monteiro,Suzan Carolina Monteiro,Involuntarias
+Leonardo Teixeira de Souza,Pitaco,Technology,,Tech Ops III,,Marcos Jai Hoon Han,Ricardo Augusto Gomes da Costa,
+Leticia Maria dos Santos,Pitaco,CX,,Team Leader,,Suzan Carolina Monteiro,Suzan Carolina Monteiro,
+Lorenzo Bertin Salvador,Pitaco,Technology,,SR. Software Engineer,,Ricardo Augusto Gomes da Costa,Ricardo Augusto Gomes da Costa,
+Luan Julião de Freitas,Pitaco,CX,,Jr CX Team Leader,,Suzan Carolina Monteiro,Suzan Carolina Monteiro,Layoff Marzo
+Luca Brandão de Queiroz,Pitaco,Marketing,,Jr Growth Analyst,,Thiago José Cotrim do Amaral Arantes,Thiago José Cotrim do Amaral Arantes,
+Lucas de Azevedo de Oliveira,Pitaco,Technology,,Software Engineer I,,Pedro João Beckhauser Neto,Ricardo Augusto Gomes da Costa,
+Lucas De Souza Villar,Pitaco,Technology,,Software Engineer I,,Guilherme Furlan,Ricardo Augusto Gomes da Costa,Layoff Marzo
+Lucas Gabriel da Silva,Pitaco,People,,Jr. Human Resources Analyst,,Elisa Duboc de Albuquerque,André Augusto Machado Santos,Layoff Marzo
+Lucas Pereira Fernandes Felipe,Pitaco,Finance,,FP&A Sr Analyst,,Alejandro Marques Carrasco Arriagada,Thiago Guerrera Martins,
+Luís Felipe de Abreu Marciano,Pitaco,Data,,Data Scientist Intern,,Ricardo Augusto Gomes da Costa,Ricardo Augusto Gomes da Costa,Layoff Mayo
+Luis Felipe Santos Vasconcellos,Pitaco,Operations,,Customer Support Assistant,,Yure Araujo dos Santos,Cássio Vasconcelos Soares Menezes ,
+Luís Fernando Laguardia,Pitaco,Data,,Data Scientist II,,André Hermenegildo Costa Silva,Ricardo Augusto Gomes da Costa,
+Luís Gustavo Serafim Rezende de Lima,Pitaco,Operations,,Pricing Intern,,Sávio Assunção da Costa Sá Filho,Cássio Vasconcelos Soares Menezes ,Layoff Mayo
+Luiz Fernando Carvalho Cosentino,Pitaco,Finance,,Treasury Analyst,,Caio Menezes Thiers,Thiago Guerrera Martins,
+Luiz Fernando Hildelfonso Stocchi,Pitaco,Operations,,Jr. Settlement Analyst,,Christian Pereira Vaz da Silva,Cássio Vasconcelos Soares Menezes ,
+Maíra Breda Audi,Pitaco,Marketing,,CRM Manager,,Thiago José Cotrim do Amaral Arantes,Thiago José Cotrim do Amaral Arantes,
+Marcelo Amaral de Souza Filho,Pitaco,Technology,,Software Engineer I,,Bento Bruno Pereira,Ricardo Augusto Gomes da Costa,Layoff Marzo
+Marcos Jai Hoon Han,Pitaco,Technology,,Information Security Manager,,Ricardo Augusto Gomes da Costa,Ricardo Augusto Gomes da Costa,
+Maria Gabriela Sales Ribeiro,Pitaco,Legal,,Jr Compliance Analyst,,Fernando Pedro Zandonadi Vasconcelos,Rafael Marchetti Marcondes,Involuntarias
+Maria Luisa Moraes Monteiro Dantas,Pitaco,Technology,,Software Engineer I,,Bento Bruno Pereira,Ricardo Augusto Gomes da Costa,
+Maria Viviane Rodrigues dos Santos ,Pitaco,CX,,Jr Customer Support Assistant,,Leonardo Henrique Martins da Silva ,Suzan Carolina Monteiro,Layoff Marzo
+Mateus Carvalho Dantas,Pitaco,Founders,,Chairman,,-,,Voluntaria
+Mathaus Silva Ramos,Pitaco,Product,,Product Designer,,Tiago Cocci Ramon,André Augusto Machado Santos,Involuntarias
+Matheus Cabral Costa,Pitaco,Operations,,Jr.Market Intelligence Analyst,,Pedro Alves do Amaral Santos,Cássio Vasconcelos Soares Menezes ,
+Milena Vieira Tonon,Pitaco,People,,Business Partner,,Elisa Duboc de Albuquerque,André Augusto Machado Santos,
+Mirelli Carvalho Bezerra,Pitaco,CX,,Customer Support  Specialist III,,Suzan Carolina Monteiro,Suzan Carolina Monteiro,
+Pamela Carolina Barbosa Costa,Pitaco,Finance,,Accounting and Tax Sr. Analyst,,Raquel Freire de Almeida,Thiago Guerrera Martins,
+Pedro Alves do Amaral Santos,Pitaco,Operations,,Market Intelligence Leader,,Cássio Vasconcelos Soares Menezes ,Cássio Vasconcelos Soares Menezes ,
+Pedro Antonio Tostes de Lima,Pitaco,Marketing,-,key Account,,Thiago José Cotrim do Amaral Arantes,Thiago José Cotrim do Amaral Arantes,Voluntaria
+Pedro Henrique Moraes Vieira,Pitaco,Technology,,Sr. Staff Software Engineer,,Ricardo Augusto Gomes da Costa,Ricardo Augusto Gomes da Costa,Voluntaria
+Pedro João Beckhauser Neto,Pitaco,Technology,,Engineering Manager I,,Guilherme Furlan,Ricardo Augusto Gomes da Costa,
+Rafael Marchetti Marcondes,Pitaco,Legal,,Chief Legal Officer,,André Augusto Machado Santos,André Augusto Machado Santos,
+Rafael Reichert Marrama,Pitaco,Product,,Sr. Designer,,Tiago Cocci Ramon,André Augusto Machado Santos,Layoff Marzo
+Rafaela Oliveira,Pitaco,People,,Human Resources Analyst,,Elisa Duboc de Albuquerque,André Augusto Machado Santos,
+Raquel Freire de Almeida,Pitaco,Finance,,Accounting and Tax Sr. Manager,,Alejandro Marques Carrasco Arriagada,Thiago Guerrera Martins,
+Renan Bispo dos Santos Silva,Pitaco,CX,,Jr CX Team Leader,,Suzan Carolina Monteiro,Suzan Carolina Monteiro,
+Renan Fernando da Silva,Pitaco,CX,,Jr Customer Support Assistant,,Luan Julião de Freitas,Suzan Carolina Monteiro,Layoff Marzo
+Ricardo Augusth Axel Rodrigues Silva,Pitaco,Legal,,Head of Legal ,,Rafael Marchetti Marcondes,Rafael Marchetti Marcondes,
+Ricardo Augusto Gomes da Costa,Pitaco,Technology,,VP of Engineering,,André Augusto Machado Santos,André Augusto Machado Santos,Involuntarias
+Robert Nunes da Silva,Pitaco,Operations,,Jr. Settlement Analyst,,Christian Pereira Vaz da Silva,Cássio Vasconcelos Soares Menezes ,Layoff Mayo
+Robson Medeiros dos Santos ,Pitaco,CX,,Jr Customer Support Assistant,,leonardo Henrique Martins da Silva ,Suzan Carolina Monteiro,
+Rodrigo de Mello Simões,Pitaco,Operations,,Jr. Settlement Analyst,,Christian Pereira Vaz da Silva,Cássio Vasconcelos Soares Menezes ,Layoff Mayo
+Rodrigo Gonçalves de Magalhães,Pitaco,Marketing,,Jr Growth Analyst,,Thiago José Cotrim do Amaral Arantes,Thiago José Cotrim do Amaral Arantes,Involuntarias
+Rodrigo Patrício Honorato Almeida,Pitaco,Operations,,Settlement Analyst,,Sávio Assunção da Costa Sá Filho,Cássio Vasconcelos Soares Menezes ,Voluntaria
+Rogério da Silva Araújo Filho,Pitaco,Technology,,Software Engineer III,,Guilherme Furlan,Ricardo Augusto Gomes da Costa,
+Ruann Kolvembeck Carneiro de Lima,Pitaco,Operations,,Jr. Trading Analyst,,Igor William Faria de Sá,Cássio Vasconcelos Soares Menezes ,Voluntaria
+Sávio Assunção da Costa Sá Filho,Pitaco,Operations,,Trading Analyst,,Ígor William Faria de Sá,Cássio Vasconcelos Soares Menezes ,Voluntaria
+Simony Tomé,Pitaco,People,,Payroll & Benefits Specialist,,Elisa Duboc de Albuquerque,André Augusto Machado Santos,
+Stefany Rangel Parracho,Pitaco,Marketing,,Project Assistant,,Thiago José Cotrim do Amaral Arantes,Thiago José Cotrim do Amaral Arantes,
+Suzan Carolina Monteiro,Pitaco,CX,,CX Manager,,André Augusto Machado Santos,André Augusto Machado Santos,
+Tamiris dos Santos Silva,Pitaco,People,,Culture And Happiness Sr Analyst,,Elisa Duboc de Albuquerque,André Augusto Machado Santos,
+Thaís Denise Espínola Rocine de Almeida,Pitaco,Technology,,Software Engineer I,,Guilherme Furlan,Ricardo Augusto Gomes da Costa,Voluntaria
+Thaís Ribeiro Lauriano ,Pitaco,Technology,,Software Engineer I,,Guilherme Furlan,Ricardo Augusto Gomes da Costa,
+Thales Castro de Oliveira,Pitaco,Technology,,Sr. Software Engineer,,Ricardo Augusto Gomes da Costa,Ricardo Augusto Gomes da Costa,
+Thamyres Morais Silva,Pitaco,Finance,,Treasury Jr. Analyst,,Caio Menezes Thiers,Thiago Guerrera Martins,
+Thiago de Oliveira Cruz,Pitaco,Data,,Data Scientist III,,Ricardo Augusto Gomes da Costa,Ricardo Augusto Gomes da Costa,Voluntaria
+Thiago Guerrera Martins,Pitaco,Finance,,CFO,,André Augusto Machado Santos,André Augusto Machado Santos,Involuntarias
+Thiago José Cotrim do Amaral Arantes,Pitaco,Marketing,,VP of Marketing,,André Augusto Machado Santos,André Augusto Machado Santos,
+Thiago Lopes Pereira,Pitaco,Operations,,Jr. Market Intelligence Analyst,,Pedro Alves do Amaral Santos,Cássio Vasconcelos Soares Menezes ,
+Tiago Cocci Ramon,Pitaco,Product,,Staff Product Designer,,André Augusto Machado Santos,André Augusto Machado Santos,
+Vanessa Berwanger Wille ,Pitaco,Data,,Data Scientist II,,André Hermenegildo Costa Silva,Ricardo Augusto Gomes da Costa,
+Victor Rodrigues Russo,Pitaco,Technology,,Software Engineer III,,Guilherme Furlan,Ricardo Augusto Gomes da Costa,
+Victor Sérgio de Souza Azevedo,Pitaco,Operations,,Jr. Trading Analyst,,Ígor William Faria de Sá,Cássio Vasconcelos Soares Menezes ,
+Vinicius Borges,Pitaco,CX,,Jr Customer Support Assistant,,Leonardo Henrique Martins da Silva ,Suzan Carolina Monteiro,Layoff Marzo
+Vinicius Nunes Carvalho,Pitaco,Finance,,Treasury Jr. Analyst,,Caio Menezes Thiers,Thiago Guerrera Martins,
+Vinicius Remorino Cezario,Pitaco,Marketing,Content,Content Manager,,Thiago José Cotrim do Amaral Arantes,Thiago José Cotrim do Amaral Arantes,
+Vitor Nicolao Fonseca,Pitaco,Marketing,-,Key Account ,,Rafael Marchetti Marcondes,Thiago José Cotrim do Amaral Arantes,
+Vitor Paiva Cedro,Pitaco,Marketing,Design,Designer Coordinator,,Thiago José Cotrim do Amaral Arantes,Thiago José Cotrim do Amaral Arantes,
+Vitor Vilela Carvalho Ferreira,Pitaco,Operations,,Manager de Cassino,,André Augusto Machado Santos,André Augusto Machado Santos,
+Vitoria Schelbauer Trentin,Pitaco,Legal,,Jr. Compliance,,Fernando Pedro Zandonadi Vasconcelos,Rafael Marchetti Marcondes,
+Washington da Silva Farias,Pitaco,CX,,Customer Support Assistant,,Leticia Maria dos Santos,Suzan Carolina Monteiro,Layoff Mayo
+Yure Araujo dos Santos,Pitaco,Operations,,Sr. Business Operations Analyst,,André Augusto Machado Santos,André Augusto Machado Santos,PDV
+Yuri Inoue Duarte,Pitaco,Marketing,Motion Design,Motion Designer,,Thiago José Cotrim do Amaral Arantes,Thiago José Cotrim do Amaral Arantes,` },
+  draftea: { label:'Draftea', src:'data-draftea.csv', csv:`Name,Brand,Diretory,Subárea,Actual Role,Area manager,Direct leader,Reason
+Agustin Alejandro Silio,Draftea,Engineering,Backend,Software Engineer,Joe Cohen,Leandro Mancini,
+Agustin de Sautu Riestra,Draftea,Engineering,Backend,Tech Lead,Joe Cohen,Joe Cohen,
+Agustín Pazos,Draftea,Engineering,Backend,Software Engineer,Joe Cohen,Leandro Mancini,Voluntaria
+Alán Jaime Misrahi,Draftea,,,CEO,,,
+Alfonso Conrado Estol,Draftea,Marketing,Performance,Business Intelligence Analyst,Raúl Colás,Simón Bancalari,
+Ana Isabel Moreno,Draftea,Trading,Trading,Sportsbook Trader,Hugo Salinas,Mario Iván Martínez,
+Andre Zaidenweber Dorenbaum,Draftea,Producto,Games,Product Manager,Renata Quintero,Renata Quintero,
+Andrea Wurzel,Draftea,Revenue & Ops,Fraude,Product Manager Fraud,Hugo Salinas,Hugo Salinas,
+Andrés David Poveda Monroy,Draftea,Marketing,Creative,Creative Manager,Raúl Colás,Tomás Franceschin,
+Andrés Haskel Socolovsky,Draftea,Engineering,Backend,Software Engineer,Joe Cohen,Luciana Guevara,
+Andrés Páez Jaramillo,Draftea,Engineering,Mobile,Tech Lead Mobile,Joe Cohen,Joe Cohen,
+Ariel Gonzalo Santos Yucra,Draftea,Engineering,Platform,Software Engineer,Joe Cohen,Nicolás Escobar,
+Brandon Orjuela,Draftea,Trading,Customer Experience,Customer Experience Specialist,Hugo Salinas,Kevin Grisar,
+Camila Andrea Cofré Zacarias,Draftea,People,People,HRBP,Paola Villagomez,Paola Villagomez,
+Camilo Restrepo,Draftea,Trading,Trading,Sportsbook Trader,Hugo Salinas,Mario Iván Martínez,
+Carlos Alberto Violante Llamas,Draftea,Engineering,Mobile,Tech Lead Mobile,Joe Cohen,Joe Cohen,
+Cesar Ronaldo Chiroque Ipanaque,Draftea,Producto,Design,Product Designer,Renata Quintero,Renata Quintero,
+Damián Ferencz Cohn,Draftea,Engineering,Backend,Software Engineer,Joe Cohen,Luciana Guevara,
+Daniel Cajicá,Draftea,Trading,Sportsbook Analytics,Business Analyst,Hugo Salinas,Hugo Salinas,
+Daniel Oscar Cristaldo,Draftea,Engineering,Backend,Software Engineer,Joe Cohen,Luciana Guevara,
+Dennis Geraldine Yunda Prada,Draftea,Trading,Customer Experience,Costumer Experience Specialist,Hugo Salinas,Kevin Grisar,
+Diego Fainerman,Draftea,Producto,Product,Product Ops,Renata Quintero,Renata Quintero,
+Edna Rocío Rodríguez Mañunga,Draftea,Trading,Fraude,Fraud Operations,Hugo Salinas,Hugo Salinas,
+Eduardo Aguilar Yepez,Draftea,Engineering,Backend,Tech Lead Platform,Joe Cohen,Nicolás Escobar,
+Estefanía Espinoza,Draftea,Marketing,Content,Motion Graphic Designer,Raúl Colás,Andrés Poveda,
+Ezequiel Matias Milone,Draftea,Engineering,Games,Software Engineer,Joe Cohen,Mauricio Frias,
+Fabian Sarinelli,Draftea,Producto,UX Research,UX Researcher,Renata Quintero,Renata Quintero,
+Facundo Ramiro Covas,Draftea,Engineering,Mobile,Mobile Engineer,Joe Cohen,Mauricio Frias,
+Federico Acosta,Draftea,Producto,Fraude,Senior Analyst Fraud,Renata Quintero,Hugo Salinas,
+Federico Vásquez Orendain,Draftea,Marketing,Brand,Brand Specialist,Raúl Colás,Mario Álvarez,
+Felipe Arias Duarte,Draftea,Trading,Trading,Sportsbook Trader,Hugo Salinas,Mario Iván Martínez,
+Fernando Armella,Draftea,Finance,Finance,Head of Finance,Javier de Oña Soto,Alán Jaime,Voluntaria
+Francisco Villanueva Sotomayor,Draftea,Trading,Sportsbook Analytics,Business Analyst,Hugo Salinas,Hugo Salinas,
+Franco Calvo,Draftea,Engineering,Data,Data Engineer,Joe Cohen,Lisandro Cocca,
+Franco Cornejo,Draftea,Engineering,Backend,Software Engineer,Joe Cohen,Luciana Guevara,
+Franco Pacheco Ramirez,Draftea,Trading,Customer Experience,Customer Experience Specialist,Hugo Salinas,Kevin Grisar,
+Gabriel Bursztein Lewi,Draftea,Engineering,Backend,Software Engineer,Joe Cohen,Mauricio Frias,
+Gabriela Aguirre Otero,Draftea,Producto,Product,Staff Product Sedign,Renata Quintero,Renata Quintero,
+Gustavo Freitas,Draftea,Producto,Product,Sr Product Manager,Renata Quintero,Renata Quintero,
+Héctor Alejandro Alvarez Rosas,Draftea,Engineering,Mobile,Mobile Engineer,Joe Cohen,Luciana Guevara,
+Hugo Salinas Lozano,Draftea,Trading,Trading,Head of Trading,Alán Jaime,Alán Jaime,
+Ian Butelmann von Beck,Draftea,Engineering,Backend,Software Engineer,Joe Cohen,Mauricio Frias,
+Ignacio Álvarez,Draftea,Engineering,Backend,Software Engineer,Joe Cohen,Leandro Mancini,
+Javier de Oña Soto,Draftea,Finance,Finance,Head of Finance,Alán Jaime,Alán Jaime,
+Javier Trochez Encizo,Draftea,Producto,Design,Product Designer,Renata Quintero,Renata Quintero,
+Javiera Burgos Con,Draftea,Engineering,Data,Analytics Engineer,Joe Cohen,Lisandro Cocca,
+Jesus Gerardo García,Draftea,Trading,Sportsbook Analytics,Business Analyst,Hugo Salinas,Hugo Salinas,
+José Ignacio Zambrana Sanchez,Draftea,Engineering,Backend,Software Engineer,Joe Cohen,Mauricio Frias,
+Joseph Cohen Romano,Draftea,Engineering,,CTO,Alán Jaime,Alán Jaime,
+Juan Simon Bancalari,Draftea,Marketing,Performance,Performance Manager,Raúl Colás,Tomás Franceschin,
+Julian Andrés Almanza Pachon,Draftea,Trading,Customer Experience,Customer Experience Specialist,Hugo Salinas,Kevin Grisar,
+Julieta Maria Contursi Rondina,Draftea,Engineering,Data,Analytics Engineer,Joe Cohen,Lisandro Cocca,
+Kevin Grisar,Draftea,Trading,Customer Experience,Customer Experience Manager,Hugo Salinas,Hugo Salinas,
+Lais Lopes Silveria De Deus,Draftea,Legal,Legal,Head of Legal,Tomás Bayo,Alán Jaime,
+Lautaro Iglesias,Draftea,Engineering,Data,Data Product Engineer,Joe Cohen,Lisandro Cocca,
+Leandro Mancini,Draftea,Engineering,Backend,Engineering Manager,Joe Cohen,Joe Cohen,
+Leonel Sebastian Fernandez,Draftea,Engineering,Backend,Software Engineer,Joe Cohen,Leandro Mancini,
+Leticia Chaparro,Draftea,Finance,Finance,Treasury Manager,Javier de Oña Soto,Javier de Oña,New Hire
+Lisandro Cocca Ajo,Draftea,Engineering,Data,Data Analytics Manager,Joe Cohen,Joe Cohen,
+Luciana Guevara,Draftea,Engineering,Backend,Engineering Manager,Joe Cohen,Joe Cohen,
+Luciano Matias Di Tomaso,Draftea,Engineering,Mobile,Mobile Engineer,Joe Cohen,Leandro Mancini,
+Luis Cano,Draftea,Trading,Customer Experience,Customer Experience Lead,Hugo Salinas,Kevin Grisar,
+Luis Daniel Hernandez Sanchez,Draftea,Marketing,Creative,Creative Designer,Raúl Colás,Andrés Poveda,
+Luis Orlando Fonseca Garzón,Draftea,Marketing,Creative,Creative Designer,Raúl Colás,Andrés Poveda,
+Manuel Calvo,Draftea,Engineering,Platform,Intern,Joe Cohen,Nicolás Escobar,
+Marcelo Alcacér,Draftea,Marketing,Content,Motion Graphic Designer,Raúl Colás,Andrés Poveda,
+Marcos Bianchi,Draftea,Producto,Product,Sr Product Manager,Renata Quintero,Renata Quintero,
+María Rubio Cedillo,Draftea,Finance,Finance,Treasury Analyst,Javier de Oña Soto,Paola Villagomez,
+Mariano Miguel Ardengo Rey Tudela,Draftea,Engineering,Platform,Sr Cloud Engineer,Joe Cohen,Nicolás Escobar,
+Mario Álvarez,Draftea,Marketing,Brand,Brand Manager,Raúl Colás,Tomás Franceschin,
+Mario Ivan Martinez,Draftea,Trading,Trading,Sportsbook Trading Manager,Hugo Salinas,Hugo Salinas,
+Martha Limas,Draftea,,,Executive Assistant,,Alán Jaime,
+Martín Mariano Arias Ciccone,Draftea,Engineering,Backend,Software Engineer,Joe Cohen,Mauricio Frias,
+Matteo Carranza,Draftea,Engineering,Backend,Software Engineer,Joe Cohen,Leandro Mancini,
+Mauricio Frias,Draftea,Engineering,Backend,Engineering Manager,Joe Cohen,Joe Cohen,
+Miguel Angel Harb Unzueta,Draftea,Marketing,Performance,Performance Analyst,Raúl Colás,Simón Bancalari,
+Nahuel Soma,Draftea,Engineering,Backend,Software Engineer,Joe Cohen,Luciana Guevara,
+Nicolás Camilo García,Draftea,Engineering,Platform,Software Engineer,Joe Cohen,Nicolás Escobar,
+Nicolas Daniel Escobar,Draftea,Engineering,Platform,Platform Manager,Joe Cohen,Joe Cohen,
+Osvaldo Antonio Quiroz Carranza,Draftea,Marketing,Creative,Creative Designer,Raúl Colás,Andrés Poveda,
+Paola Hernandez,Draftea,Legal,Legal,Jr. Lawyer,,Rafael Marcondes,New Hire
+Paola Villagomez Moheno,Draftea,People,People,Head of People,Alán Jaime,Alán Jaime,
+Pedro Belloni,Draftea,Marketing,Performance,Customer Engagement Specialist,Raúl Colás,Simón Bancalari,
+Pedro Peniche,Draftea,Revenue & Ops,Revenue,Revenue Analyst,Hugo Salinas,Jesus Gerardo,New Hire
+Raúl Colás Beltrán,Draftea,Marketing/Finance,Management,VP Finance & Marketing,Alán Jaime,Alán Jaime,
+Renata Quintero Escobedo,Draftea,Producto,Management,Head of Product,Alán Jaime,Joe Cohen,
+Ricardo Rui,Draftea,Marketing,Brand,Brand Specialist,Raúl Colás,Tomás Franceschin,Involuntarias
+Roberto Sosa,Draftea,Engineering,Data,Data Scientist,Joe Cohen,Lisandro Cocca,
+Rodrigo Godoy,Draftea,Finance,Finance,Finance Associate,Javier de Oña Soto,Javier de Oña,
+Rodrigo Hernandez Parra,Draftea,Marketing,Creative,Copywriter Sr.,Raúl Colás,Andrés Poveda,
+Rubén Ariel Escobar,Draftea,Engineering,Platform,Cloud Engineer,Joe Cohen,Nicolás Escobar,
+Sebastián Caro,Draftea,Trading,Trading,Sportsbook Trader,Hugo Salinas,Mario Iván Martínez,
+Sebastian Leonel Godirio,Draftea,Engineering,Backend,Software Engineer,Joe Cohen,Leandro Mancini,
+Sergio Miranda,Draftea,Engineering,Mobile,Mobile Engineer,Joe Cohen,Leandro Mancini,Involuntarias
+Silvana Ochoa,Draftea,Trading,Customer Experience,Customer Experience Specialist,Hugo Salinas,Kevin Grisar,
+Tomas Franceschin,Draftea,Marketing,Management,Head of Marketing,Raúl Colás,Raúl Colás,
+Tomas Bayo,Draftea,Legal,Legal,Head of Legal,Alán Jaime,Alán Jaime,Voluntaria
+Valeria Scotti,Draftea,Producto,Product,Business Analyst,Renata Quintero,Renata Quintero,
+Vicente Mardones Perez,Draftea,People,People,Talent Acquisition,Paola Villagomez,Camila Cofre,` },
+};
+
+/* ===== status por motivo ===== */
+const STATUS = {
+  stay:{cls:'st-stay',color:'#17876a',label:'Sigue'},
+  vol: {cls:'st-vol', color:'#3b82c4',label:'Voluntaria'},
+  inv: {cls:'st-inv', color:'#7c5cff',label:'Involuntaria'},
+  lmar:{cls:'st-lmar',color:'#d64550',label:'Layoff marzo'},
+  lmay:{cls:'st-lmay',color:'#e08a2b',label:'Layoff mayo'},
+  pdv: {cls:'st-pdv', color:'#8b93a7',label:'PDV'},
+  new: {cls:'st-new', color:'#0ea5a5',label:'Nuevo ingreso'},
+};
+const LEGEND_ORDER=['stay','vol','inv','lmar','lmay','pdv','new'];
+const DEPARTURES=['vol','inv','lmar','lmay','pdv'];
+function reasonToStatus(r){r=(r||'').trim().toLowerCase();
+  if(!r)return 'stay'; if(r.startsWith('vol'))return 'vol'; if(r.startsWith('invol'))return 'inv';
+  if(r.includes('marzo'))return 'lmar'; if(r.includes('mayo'))return 'lmay'; if(r==='pdv')return 'pdv';
+  if(r.startsWith('new'))return 'new'; return 'pdv';}
+
+/* ===== CSV ===== */
+function parseCSV(text){const rows=[];let row=[],field='',q=false;text=text.replace(/\r\n/g,'\n').replace(/\r/g,'\n');
+  for(let i=0;i<text.length;i++){const c=text[i];
+    if(q){if(c==='"'){if(text[i+1]==='"'){field+='"';i++;}else q=false;}else field+=c;}
+    else{if(c==='"')q=true;else if(c===','){row.push(field);field='';}else if(c==='\n'){row.push(field);rows.push(row);row=[];field='';}else field+=c;}}
+  if(field.length||row.length){row.push(field);rows.push(row);}
+  return rows.filter(r=>r.some(x=>x.trim()!==''));}
+const norm=s=>(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/\s+/g,' ').trim();
+function headerKey(h){const n=norm(h);
+  if(n==='name')return 'name'; if(n==='brand')return 'brand';
+  if(n==='diretory'||n==='directory'||n==='area')return 'dept';
+  if(n==='subarea')return 'subarea'; if(n==='actual role'||n==='role')return 'role';
+  if(n==='direct leader'||n==='leader')return 'leader'; if(n==='area manager')return 'areaManager';
+  if(n==='reason')return 'reason'; if(n==='propuesta roles')return 'proposal'; return null;}
+
+/* ===== modelo ===== */
+const PARTICLES=new Set(['de','da','do','dos','das','del','la','von','van','di','du']);
+let MODEL=null;
+function buildModel(csvText){
+  const rows=parseCSV(csvText); const header=rows[0].map(headerKey); const people=[];
+  for(let r=1;r<rows.length;r++){const rec={};rows[r].forEach((v,i)=>{if(header[i])rec[header[i]]=(v||'').trim();});if(rec.name)people.push(rec);}
+  people.forEach((p,i)=>{p._i=i;p._n=norm(p.name);p._tok=p._n.split(' ').filter(Boolean);p.status=reasonToStatus(p.reason);});
+  const byName=new Map();people.forEach(p=>{if(!byName.has(p._n))byName.set(p._n,p);});
+  function resolve(nameRaw,self){const key=norm(nameRaw);if(!key||key==='-')return null;
+    if(byName.has(key)){const p=byName.get(key);return p._i===self?null:p._i;}
+    const lt=key.split(' ').filter(Boolean);let best=null,ex=Infinity;
+    for(const p of people){if(p._i===self)continue;if(lt.every(t=>p._tok.includes(t))){const e=p._tok.length-lt.length;if(e<ex){ex=e;best=p._i;}}}
+    if(best!==null)return best;
+    const sur=[...lt].reverse().find(t=>!PARTICLES.has(t)&&t.length>=4);const ini=lt[0]?lt[0][0]:'';
+    if(sur&&ini){const c=people.filter(p=>p._i!==self&&p._tok.includes(sur)&&p._tok.some(w=>w[0]===ini));if(c.length===1)return c[0]._i;}
+    return null;}
+  const parentOf=new Array(people.length).fill(null);const roots=[];
+  people.forEach(p=>{const lead=norm(p.leader);
+    if(lead===''||lead==='-'){roots.push(p._i);parentOf[p._i]='ROOTNODE';return;}
+    let pi=resolve(p.leader,p._i);if(pi===null&&norm(p.areaManager))pi=resolve(p.areaManager,p._i);
+    parentOf[p._i]=(pi===null?'ORPHAN':pi);});
+  const ceo=roots.length?roots[0]:null;
+  people.forEach(p=>{if(parentOf[p._i]==='ORPHAN')parentOf[p._i]=(ceo!=null?ceo:'ROOTNODE');});
+  const counts={};LEGEND_ORDER.forEach(k=>counts[k]=0);people.forEach(p=>counts[p.status]++);
+  MODEL={people,parentOf,roots,counts};return MODEL;}
+
+const SYN_ROOT={_i:-1,name:'',role:'',dept:'',status:'root',synthRoot:true};
+function tierRank(p){const r=norm(p.role);
+  if(/chairman/.test(r))return 0;
+  if(/\bceo\b|\bcfo\b|\bcto\b|\bcpo\b|\bcmo\b|chief/.test(r))return 1;
+  if(/\bvp\b/.test(r))return 2; if(/head of/.test(r))return 3;
+  if(/manager|leader|lead|coordinator/.test(r))return 4; return 5;}
+function buildNested(){
+  const {people,parentOf}=MODEL; const kids=new Map();
+  const add=(k,c)=>{if(!kids.has(k))kids.set(k,[]);kids.get(k).push(c);};
+  people.forEach(p=>{if(p._i<0)return;const par=parentOf[p._i];
+    if(par==='ROOTNODE')add('ROOT',p._i);else add(par,p._i);});
+  const visited=new Set();
+  function make(idx){visited.add(idx);const p=people[idx];
+    const cs=(kids.get(idx)||[]).filter(c=>!visited.has(c)).map(make);
+    cs.sort((a,b)=>{const t=tierRank(a.data)-tierRank(b.data);return t||a.data.name.localeCompare(b.data.name,'es');});
+    return {data:p,children:cs};}
+  const top=(kids.get('ROOT')||[]).filter(c=>!visited.has(c)).map(make);
+  top.sort((a,b)=>{const t=tierRank(a.data)-tierRank(b.data);return t||a.data.name.localeCompare(b.data.name,'es');});
+  return {data:SYN_ROOT,children:top};}
+
+/* ===== render D3 ===== */
+const NODE_W=228,NODE_H=78,GAP_X=30,GAP_Y=142;
+const svg=d3.select('#tree'),gViewport=d3.select('#viewport'),gLinks=d3.select('#links'),gNodes=d3.select('#nodes');
+let root,i=0,searchTerm='',hidden=new Set(),curKey='pitaco';
+const zoom=d3.zoom().scaleExtent([0.12,2]).on('zoom',e=>gViewport.attr('transform',e.transform));
+svg.call(zoom).on('dblclick.zoom',null);
+document.getElementById('stage').addEventListener('mousedown',()=>document.getElementById('stage').classList.add('grabbing'));
+window.addEventListener('mouseup',()=>document.getElementById('stage').classList.remove('grabbing'));
+const treeLayout=d3.tree().nodeSize([NODE_W+GAP_X,GAP_Y]);
+function collapse(d){if(d.children){d._children=d.children;d._children.forEach(collapse);d.children=null;}}
+function totalDesc(d){const k=d.children||d._children||[];let n=k.length;k.forEach(c=>n+=totalDesc(c));return n;}
+function statusCls(p){if(p.synthRoot)return 'st-root';return STATUS[p.status]?STATUS[p.status].cls:'st-pdv';}
+function matchesSearch(d){if(!searchTerm)return false;const t=norm(searchTerm);const p=d.data.data;
+  return norm(p.name).includes(t)||norm(p.role).includes(t);}
+
+function loadTree(){
+  const nested=buildNested();
+  root=d3.hierarchy(nested,d=>d.children);root.x0=0;root.y0=0;
+  if(root.children)root.children.forEach(c=>{if(c.children)c.children.forEach(collapse);});
+  update(root);setTimeout(fitToScreen,60);}
+
+function update(source){
+  const nodes=treeLayout(root).descendants(),links=root.links();
+  nodes.forEach(d=>d.y=d.depth*GAP_Y);
+  const onPath=new Set();
+  if(searchTerm)root.each(d=>{if(matchesSearch(d)){let a=d;while(a){onPath.add(a);a=a.parent;}}});
+  const node=gNodes.selectAll('g.node').data(nodes,d=>d.id||(d.id=++i));
+  const enter=node.enter().append('g').attr('class','node')
+    .attr('transform',()=>`translate(${source.x0-NODE_W/2},${source.y0-NODE_H/2})`).style('opacity',0);
+  enter.append('foreignObject').attr('width',NODE_W).attr('height',NODE_H+20).append('xhtml:div').attr('class','node-inner');
+  const all=enter.merge(node);
+  all.select('.node-inner').html(d=>{const p=d.data.data;
+    if(p.synthRoot){return `<div class="node-card st-root" style="height:${NODE_H}px">
+      <div class="node-name" style="font-family:var(--display);font-size:15px">${DATASETS[curKey].label}</div>
+      <div class="node-role">Estructura antes de la adquisición</div></div>`;}
+    const kids=(d.children?d.children.length:0)+(d._children?d._children.length:0);
+    const collapsed=!!d._children,tot=totalDesc(d),st=STATUS[p.status];
+    const dept=p.dept?`<span class="tag dept">${p.dept}</span>`:'';
+    const statusTag=`<span class="tag status">${st?st.label:''}</span>`;
+    const toggle=kids?`<div class="toggle">${collapsed?'+'+tot:'−'}</div>`:'';
+    return `<div class="node-card ${statusCls(p)}" style="height:${NODE_H}px">
+      <div class="node-name">${p.name.trim()}</div>
+      <div class="node-role">${(p.role||'').trim()||'—'}</div>
+      <div class="node-tags">${statusTag}${dept}</div></div>${toggle}`;});
+  all.classed('dim',d=>{const p=d.data.data;if(p.synthRoot)return false;return hidden.has(p.status);})
+     .classed('match',d=>matchesSearch(d));
+  all.transition().duration(400).attr('transform',d=>`translate(${d.x-NODE_W/2},${d.y-NODE_H/2})`).style('opacity',1);
+  all.select('.node-inner').on('click',(e,d)=>{e.stopPropagation();
+    if(d.children){d._children=d.children;d.children=null;}else if(d._children){d.children=d._children;d._children=null;}update(d);});
+  node.exit().transition().duration(280).attr('transform',()=>`translate(${source.x-NODE_W/2},${source.y-NODE_H/2})`).style('opacity',0).remove();
+  const link=gLinks.selectAll('path.link').data(links,d=>d.target.id);
+  const diagonal=d3.linkVertical().x(d=>d.x).y(d=>d.y);
+  const le=link.enter().insert('path','g').attr('class','link').attr('d',()=>{const o={x:source.x0,y:source.y0};return diagonal({source:o,target:o});});
+  le.merge(link).transition().duration(400)
+    .attr('class',d=>onPath.has(d.target)&&onPath.has(d.source)?'link on-path':'link')
+    .attr('d',d=>{const s={x:d.source.x,y:d.source.y+NODE_H/2},t={x:d.target.x,y:d.target.y-NODE_H/2};return diagonal({source:s,target:t});});
+  link.exit().transition().duration(280).attr('d',()=>{const o={x:source.x,y:source.y};return diagonal({source:o,target:o});}).remove();
+  nodes.forEach(d=>{d.x0=d.x;d.y0=d.y;});}
+
+function fitToScreen(){const b=gNodes.node().getBBox();if(!b.width)return;
+  const s=document.getElementById('stage').getBoundingClientRect();const pad=90;
+  const scale=Math.min((s.width-pad)/b.width,(s.height-pad)/b.height,1.15);
+  svg.transition().duration(500).call(zoom.transform,d3.zoomIdentity.translate(s.width/2-(b.x+b.width/2)*scale,36-b.y*scale+16).scale(scale));}
+function centerOn(d,scale=0.95){const s=document.getElementById('stage').getBoundingClientRect();
+  svg.transition().duration(500).call(zoom.transform,d3.zoomIdentity.translate(s.width/2-d.x*scale,s.height/2-d.y*scale).scale(scale));}
+
+/* ===== header (KPIs, barra, leyenda) ===== */
+function renderHeader(){
+  const c=MODEL.counts,total=MODEL.people.length,stay=c.stay;
+  const out=DEPARTURES.reduce((s,k)=>s+c[k],0),nuevos=c.new;
+  document.getElementById('kTotal').textContent=total;
+  document.getElementById('kStay').textContent=stay;
+  document.getElementById('kOut').textContent=out;
+  document.getElementById('kPct').textContent='−'+Math.round(out/total*100)+'%';
+  const nk=document.getElementById('kpiNew');
+  if(nuevos>0){nk.style.display='';document.getElementById('kNew').textContent=nuevos;}else nk.style.display='none';
+  document.getElementById('barTot').textContent=total+' personas';
+  const bar=document.getElementById('bar');bar.innerHTML='';
+  LEGEND_ORDER.forEach(k=>{if(!c[k])return;const s=document.createElement('span');
+    s.style.width=(c[k]/total*100)+'%';s.style.background=STATUS[k].color;s.title=STATUS[k].label+': '+c[k];bar.appendChild(s);});
+  const lg=document.getElementById('legend');lg.querySelectorAll('.row').forEach(n=>n.remove());
+  LEGEND_ORDER.forEach(k=>{if(!c[k])return;const row=document.createElement('div');row.className='row';if(hidden.has(k))row.classList.add('off');
+    row.innerHTML=`<span class="sw" style="background:${STATUS[k].color}"></span><span>${STATUS[k].label}</span><span class="ct">${c[k]}</span>`;
+    row.onclick=()=>{if(hidden.has(k))hidden.delete(k);else hidden.add(k);row.classList.toggle('off');update(root);};
+    lg.appendChild(row);});}
+
+/* ===== sincronización en vivo (data-*.csv publicado por la GitHub Action) ===== */
+function setSync(state,text){const d=document.getElementById('dotsync');d.className='dotsync '+state;document.getElementById('syncText').textContent=text;}
+async function autoSync(key){
+  const src=DATASETS[key].src; if(!src){setSync('snap','Snapshot local');return;}
+  setSync('loading','Sincronizando…');
+  try{
+    const u=src+(src.includes('?')?'&':'?')+'_='+Date.now();
+    const res=await fetch(u,{cache:'no-store'}); if(!res.ok) throw 0;
+    const txt=await res.text();
+    if(curKey!==key) return;                                  // el usuario cambió de pestaña
+    if(!/direct leader|reason/i.test(txt)) throw 0;           // respuesta inesperada
+    buildModel(txt); renderHeader(); loadTree();
+    setSync('live','Actualizado '+new Date().toLocaleString('es-CL',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}));
+  }catch(e){ if(curKey===key) setSync('snap','Snapshot local'); }
+}
+
+/* ===== cambio de pestaña ===== */
+function loadDataset(key){
+  curKey=key;hidden=new Set();searchTerm='';document.getElementById('search').value='';
+  document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.ds===key));
+  document.getElementById('title').textContent=DATASETS[key].label+' · Estructura antes de la adquisición';
+  SYN_ROOT.name=DATASETS[key].label;
+  buildModel(DATASETS[key].csv);renderHeader();loadTree();
+  autoSync(key);}
+
+/* ===== controles ===== */
+document.getElementById('tabs').addEventListener('click',e=>{const b=e.target.closest('button');if(b)loadDataset(b.dataset.ds);});
+document.getElementById('zoomIn').onclick=()=>svg.transition().call(zoom.scaleBy,1.3);
+document.getElementById('zoomOut').onclick=()=>svg.transition().call(zoom.scaleBy,1/1.3);
+document.getElementById('fit').onclick=fitToScreen;
+let stmr;document.getElementById('search').oninput=e=>{searchTerm=e.target.value.trim();clearTimeout(stmr);stmr=setTimeout(()=>{
+  if(searchTerm){let first=null;root.each(d=>{if(matchesSearch(d)){if(!first)first=d;let a=d.parent;while(a){if(a._children){a.children=a._children;a._children=null;}a=a.parent;}}});update(root);if(first)setTimeout(()=>centerOn(first),120);}else update(root);},200);};
+
+/* ===== init ===== */
+loadDataset('pitaco');
+
+</script>
+</body>
+</html>
