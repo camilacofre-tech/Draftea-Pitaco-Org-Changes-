@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Estructura antes y durante la adquisición · Pitaco y Draftea</title>
+<title>Estructura antes de la adquisición · Pitaco y Draftea</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -41,7 +41,9 @@
   .kpi{display:flex;flex-direction:column;gap:1px}
   .kpi .v{font-family:var(--display);font-size:26px;font-weight:700;line-height:1}
   .kpi .k{font-size:11px;color:var(--ink-2);letter-spacing:.3px;text-transform:uppercase;font-weight:600}
+  .kpi .sub{font-size:11px;color:var(--lmar-tx);font-weight:700;margin-top:2px}
   .kpi.drop .v{color:var(--lmar)}
+  .kop{align-self:flex-start;margin-top:4px;font-family:var(--display);font-size:22px;font-weight:400;color:var(--ink-2)}
   .barwrap{flex:1;min-width:260px}
   .barwrap .caption{display:flex;justify-content:space-between;font-size:11px;color:var(--ink-2);margin-bottom:5px}
   .bar{display:flex;height:16px;border-radius:6px;overflow:hidden;border:1px solid var(--line)}
@@ -124,7 +126,7 @@
     </div>
     <div class="toprow">
       <div class="titleblock">
-        <h1 id="title">Pitaco · Estructura antes y durante la adquisición</h1>
+        <h1 id="title">Pitaco · Estructura antes de la adquisición</h1>
         <div class="sub">Organigrama y cambios por motivo · diciembre 2025</div>
       </div>
       <div class="spacer"></div>
@@ -134,11 +136,7 @@
       </div>
     </div>
     <div class="kpis">
-      <div class="kpi"><span class="v" id="kTotal">0</span><span class="k">Personas</span></div>
-      <div class="kpi"><span class="v" id="kStay" style="color:var(--stay)">0</span><span class="k">Siguen</span></div>
-      <div class="kpi drop"><span class="v" id="kOut">0</span><span class="k">Salidas</span></div>
-      <div class="kpi" id="kpiNew" style="display:none"><span class="v" id="kNew" style="color:var(--new)">0</span><span class="k">Nuevos ingresos</span></div>
-      <div class="kpi drop hideSm"><span class="v" id="kPct">0%</span><span class="k">% salidas</span></div>
+      <div id="kpiCells" style="display:flex;gap:26px;flex-wrap:wrap"></div>
       <div class="barwrap">
         <div class="caption"><span id="barCap">Composición de la estructura</span><span id="barTot"></span></div>
         <div class="bar" id="bar"></div>
@@ -171,7 +169,7 @@ const FUENTE_DRAFTEA = CSV('793170873');    // pestaña Draftea
 
 /* ===== datasets (una pestaña por empresa) ===== */
 const DATASETS = {
-  pitaco:  { label:'Pitaco',  src:FUENTE_PITACO,  csv:`Name,Brand,Diretory,Subárea,Actual Role,Propuesta roles,Direct leader,Area manager,Reason
+  pitaco:  { label:'Pitaco',  kind:'people', src:FUENTE_PITACO,  csv:`Name,Brand,Diretory,Subárea,Actual Role,Propuesta roles,Direct leader,Area manager,Reason
 Adrielle Andrade Carvalho,Pitaco,Technology,,Software Engineer II,,Bento Bruno Pereira,Ricardo Augusto Gomes da Costa,
 Alana Fanny de Macedo,Pitaco,Finance,,Accounting and Tax Jr. Analyst,,Raquel Freire de Almeida,Thiago Guerrera Martins,
 Alejandro Marques Carrasco Arriagada,Pitaco,Finance,,Head of Finance,,Thiago Guerrera Martins,Thiago Guerrera Martins,PDV
@@ -350,7 +348,7 @@ Vitoria Schelbauer Trentin,Pitaco,Legal,,Jr. Compliance,,Fernando Pedro Zandonad
 Washington da Silva Farias,Pitaco,CX,,Customer Support Assistant,,Leticia Maria dos Santos,Suzan Carolina Monteiro,Layoff Mayo
 Yure Araujo dos Santos,Pitaco,Operations,,Sr. Business Operations Analyst,,André Augusto Machado Santos,André Augusto Machado Santos,PDV
 Yuri Inoue Duarte,Pitaco,Marketing,Motion Design,Motion Designer,,Thiago José Cotrim do Amaral Arantes,Thiago José Cotrim do Amaral Arantes,` },
-  draftea: { label:'Draftea', src:FUENTE_DRAFTEA, csv:`Name,Brand,Diretory,Subárea,Actual Role,Area manager,Direct leader,Reason
+  draftea: { label:'Draftea', kind:'people', src:FUENTE_DRAFTEA, csv:`Name,Brand,Diretory,Subárea,Actual Role,Area manager,Direct leader,Reason
 Agustin Alejandro Silio,Draftea,Engineering,Backend,Software Engineer,Joe Cohen,Leandro Mancini,
 Agustin de Sautu Riestra,Draftea,Engineering,Backend,Tech Lead,Joe Cohen,Joe Cohen,
 Agustín Pazos,Draftea,Engineering,Backend,Software Engineer,Joe Cohen,Leandro Mancini,Voluntaria
@@ -487,10 +485,11 @@ function headerKey(h){const n=norm(h);
 /* ===== modelo ===== */
 const PARTICLES=new Set(['de','da','do','dos','das','del','la','von','van','di','du']);
 let MODEL=null;
-function buildModel(csvText){
+function buildModel(csvText){ return buildModelPeople(csvText); }
+function buildModelPeople(csvText){
   const rows=parseCSV(csvText); const header=rows[0].map(headerKey); const people=[];
   for(let r=1;r<rows.length;r++){const rec={};rows[r].forEach((v,i)=>{if(header[i])rec[header[i]]=(v||'').trim();});if(rec.name)people.push(rec);}
-  people.forEach((p,i)=>{p._i=i;p._n=norm(p.name);p._tok=p._n.split(' ').filter(Boolean);p.status=reasonToStatus(p.reason);});
+  people.forEach((p,i)=>{p._i=i;p._n=norm(p.name);p._tok=p._n.split(' ').filter(Boolean);p.status=reasonToStatus(p.reason);p.cat=p.status;});
   const byName=new Map();people.forEach(p=>{if(!byName.has(p._n))byName.set(p._n,p);});
   function resolve(nameRaw,self){const key=norm(nameRaw);if(!key||key==='-')return null;
     if(byName.has(key)){const p=byName.get(key);return p._i===self?null:p._i;}
@@ -508,7 +507,7 @@ function buildModel(csvText){
   const ceo=roots.length?roots[0]:null;
   people.forEach(p=>{if(parentOf[p._i]==='ORPHAN')parentOf[p._i]=(ceo!=null?ceo:'ROOTNODE');});
   const counts={};LEGEND_ORDER.forEach(k=>counts[k]=0);people.forEach(p=>counts[p.status]++);
-  MODEL={people,parentOf,roots,counts};return MODEL;}
+  MODEL={people,parentOf,roots,counts,kind:'people',catMap:STATUS,catOrder:LEGEND_ORDER};return MODEL;}
 
 const SYN_ROOT={_i:-1,name:'',role:'',dept:'',status:'root',synthRoot:true};
 function tierRank(p){const r=norm(p.role);
@@ -518,16 +517,17 @@ function tierRank(p){const r=norm(p.role);
   if(/manager|leader|lead|coordinator/.test(r))return 4; return 5;}
 function buildNested(){
   const {people,parentOf}=MODEL; const kids=new Map();
+  const rankFn=p=>(p._rank!=null?p._rank:tierRank(p));
   const add=(k,c)=>{if(!kids.has(k))kids.set(k,[]);kids.get(k).push(c);};
   people.forEach(p=>{if(p._i<0)return;const par=parentOf[p._i];
     if(par==='ROOTNODE')add('ROOT',p._i);else add(par,p._i);});
   const visited=new Set();
   function make(idx){visited.add(idx);const p=people[idx];
     const cs=(kids.get(idx)||[]).filter(c=>!visited.has(c)).map(make);
-    cs.sort((a,b)=>{const t=tierRank(a.data)-tierRank(b.data);return t||a.data.name.localeCompare(b.data.name,'es');});
+    cs.sort((a,b)=>{const t=rankFn(a.data)-rankFn(b.data);return t||a.data.name.localeCompare(b.data.name,'es');});
     return {data:p,children:cs};}
   const top=(kids.get('ROOT')||[]).filter(c=>!visited.has(c)).map(make);
-  top.sort((a,b)=>{const t=tierRank(a.data)-tierRank(b.data);return t||a.data.name.localeCompare(b.data.name,'es');});
+  top.sort((a,b)=>{const t=rankFn(a.data)-rankFn(b.data);return t||a.data.name.localeCompare(b.data.name,'es');});
   return {data:SYN_ROOT,children:top};}
 
 /* ===== render D3 ===== */
@@ -566,15 +566,16 @@ function update(source){
       <div class="node-name" style="font-family:var(--display);font-size:15px">${DATASETS[curKey].label}</div>
       <div class="node-role">Estructura antes de la adquisición</div></div>`;}
     const kids=(d.children?d.children.length:0)+(d._children?d._children.length:0);
-    const collapsed=!!d._children,tot=totalDesc(d),st=STATUS[p.status];
+    const collapsed=!!d._children,tot=totalDesc(d);
+    const toggle=kids?`<div class="toggle">${collapsed?'+'+tot:'−'}</div>`:'';
+    const st=STATUS[p.status];
     const dept=p.dept?`<span class="tag dept">${p.dept}</span>`:'';
     const statusTag=`<span class="tag status">${st?st.label:''}</span>`;
-    const toggle=kids?`<div class="toggle">${collapsed?'+'+tot:'−'}</div>`:'';
     return `<div class="node-card ${statusCls(p)}" style="height:${NODE_H}px">
       <div class="node-name">${p.name.trim()}</div>
       <div class="node-role">${(p.role||'').trim()||'—'}</div>
       <div class="node-tags">${statusTag}${dept}</div></div>${toggle}`;});
-  all.classed('dim',d=>{const p=d.data.data;if(p.synthRoot)return false;return hidden.has(p.status);})
+  all.classed('dim',d=>{const p=d.data.data;if(p.synthRoot)return false;return hidden.has(p.cat);})
      .classed('match',d=>matchesSearch(d));
   all.transition().duration(400).attr('transform',d=>`translate(${d.x-NODE_W/2},${d.y-NODE_H/2})`).style('opacity',1);
   all.select('.node-inner').on('click',(e,d)=>{e.stopPropagation();
@@ -597,22 +598,43 @@ function centerOn(d,scale=0.95){const s=document.getElementById('stage').getBoun
   svg.transition().duration(500).call(zoom.transform,d3.zoomIdentity.translate(s.width/2-d.x*scale,s.height/2-d.y*scale).scale(scale));}
 
 /* ===== header (KPIs, barra, leyenda) ===== */
+function buildKpis(){
+  const cells=[];
+  {
+    const c=MODEL.counts,stay=c.stay,out=DEPARTURES.reduce((s,k)=>s+c[k],0),nuevos=c.new;
+    const antes=stay+out,despues=stay+nuevos,pct=antes?Math.round(out/antes*100):0;
+    cells.push({v:antes,k:'Antes'});
+    cells.push({op:'−'});
+    cells.push({v:out,k:'Salidas',cls:'drop',sub:'−'+pct+'%'});
+    cells.push({op:'='});
+    cells.push({v:stay,k:'Siguen',color:'var(--stay)'});
+    if(nuevos>0){
+      cells.push({op:'+'});
+      cells.push({v:nuevos,k:'Nuevos',color:'var(--new)'});
+      cells.push({op:'='});
+      cells.push({v:despues,k:'Después'});
+    }
+  }
+  document.getElementById('kpiCells').innerHTML=cells.map(c=>{
+    if(c.op) return `<div class="kop">${c.op}</div>`;
+    if(c.sep) return `<div style="width:1px;align-self:stretch;background:var(--line);margin:2px 4px"></div>`;
+    const sub=c.sub?`<span class="sub">${c.sub}</span>`:'';
+    return `<div class="kpi ${c.cls||''}"><span class="v" ${c.color?`style="color:${c.color}"`:''}>${c.v}</span><span class="k">${c.k}</span>${sub}</div>`;
+  }).join('');
+}
 function renderHeader(){
-  const c=MODEL.counts,total=MODEL.people.length,stay=c.stay;
-  const out=DEPARTURES.reduce((s,k)=>s+c[k],0),nuevos=c.new;
-  document.getElementById('kTotal').textContent=total;
-  document.getElementById('kStay').textContent=stay;
-  document.getElementById('kOut').textContent=out;
-  document.getElementById('kPct').textContent='−'+Math.round(out/total*100)+'%';
-  const nk=document.getElementById('kpiNew');
-  if(nuevos>0){nk.style.display='';document.getElementById('kNew').textContent=nuevos;}else nk.style.display='none';
-  document.getElementById('barTot').textContent=total+' personas';
+  const cm=MODEL.catMap,order=MODEL.catOrder,c=MODEL.counts,denom=MODEL.people.length;
+  buildKpis();
+  const st=c.stay,out=DEPARTURES.reduce((s,k)=>s+c[k],0),nv=c.new;
+  document.getElementById('barTot').textContent=(st+out)+' antes · '+(st+nv)+' después';
+  document.getElementById('barCap').textContent='Composición de la estructura';
   const bar=document.getElementById('bar');bar.innerHTML='';
-  LEGEND_ORDER.forEach(k=>{if(!c[k])return;const s=document.createElement('span');
-    s.style.width=(c[k]/total*100)+'%';s.style.background=STATUS[k].color;s.title=STATUS[k].label+': '+c[k];bar.appendChild(s);});
+  order.forEach(k=>{if(!c[k])return;const s=document.createElement('span');
+    s.style.width=(c[k]/denom*100)+'%';s.style.background=cm[k].color;s.title=cm[k].label+': '+c[k];bar.appendChild(s);});
   const lg=document.getElementById('legend');lg.querySelectorAll('.row').forEach(n=>n.remove());
-  LEGEND_ORDER.forEach(k=>{if(!c[k])return;const row=document.createElement('div');row.className='row';if(hidden.has(k))row.classList.add('off');
-    row.innerHTML=`<span class="sw" style="background:${STATUS[k].color}"></span><span>${STATUS[k].label}</span><span class="ct">${c[k]}</span>`;
+  lg.querySelector('h3').textContent='Motivo';
+  order.forEach(k=>{if(!c[k])return;const row=document.createElement('div');row.className='row';if(hidden.has(k))row.classList.add('off');
+    row.innerHTML=`<span class="sw" style="background:${cm[k].color}"></span><span>${cm[k].label}</span><span class="ct">${c[k]}</span>`;
     row.onclick=()=>{if(hidden.has(k))hidden.delete(k);else hidden.add(k);row.classList.toggle('off');update(root);};
     lg.appendChild(row);});}
 
@@ -634,11 +656,12 @@ async function autoSync(key){
 
 /* ===== cambio de pestaña ===== */
 function loadDataset(key){
+  const ds=DATASETS[key];
   curKey=key;hidden=new Set();searchTerm='';document.getElementById('search').value='';
   document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.ds===key));
-  document.getElementById('title').textContent=DATASETS[key].label+' · Estructura antes de la adquisición';
-  SYN_ROOT.name=DATASETS[key].label;
-  buildModel(DATASETS[key].csv);renderHeader();loadTree();
+  document.getElementById('title').textContent=ds.label+' · Estructura antes de la adquisición';
+  SYN_ROOT.name=ds.label;
+  buildModel(ds.csv);renderHeader();loadTree();
   autoSync(key);}
 
 /* ===== controles ===== */
