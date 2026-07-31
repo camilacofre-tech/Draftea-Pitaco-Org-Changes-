@@ -85,6 +85,10 @@
   .chev{font-size:11px;color:var(--ink-2);width:14px;flex:none;margin-top:3px;line-height:1;user-select:none}
   .chev-spacer{width:14px;flex:none}
 
+  .toggle{position:absolute;left:50%;transform:translateX(-50%);bottom:-13px;min-width:26px;height:26px;padding:0 9px;
+    border-radius:14px;background:#fff;border:1.5px solid var(--line);display:flex;align-items:center;justify-content:center;
+    font-size:12.5px;font-weight:700;color:var(--ink);box-shadow:0 3px 7px rgba(20,20,50,.18);white-space:nowrap;font-family:var(--display)}
+
   .floaters{position:absolute;right:16px;bottom:16px;display:flex;flex-direction:column;gap:8px;z-index:5}
   .zbtn{width:38px;height:38px;border-radius:10px;background:#fff;border:1px solid var(--line);color:var(--ink);
     font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(20,20,50,.08)}
@@ -520,7 +524,39 @@ function buildNested(){
   top.sort((a,b)=>{const t=rankFn(a.data)-rankFn(b.data);return t||a.data.name.localeCompare(b.data.name,'es');});
   return {data:SYN_ROOT,children:top};}
 
-const NODE_W=228,NODE_H=78,ROW_H=92,INDENT=44;
+const NODE_W=228,NODE_H=78,ROW_GAP=14,COL_GAP=24,LEVEL_GAP=40,INDENT=44;
+function modeForDepth(depth){ return depth % 2 === 1 ? 'vertical' : 'horizontal'; }
+function measure(node){
+  if(!node.children){ node.subtreeW=NODE_W; node.subtreeH=NODE_H; return; }
+  node.children.forEach(measure);
+  const mode=modeForDepth(node.depth+1);
+  node._childMode=mode;
+  if(mode==='vertical'){
+    node.subtreeW=Math.max(NODE_W, INDENT+Math.max(...node.children.map(c=>c.subtreeW)));
+    node.subtreeH=NODE_H+node.children.reduce((s,c)=>s+c.subtreeH+ROW_GAP,0);
+  } else {
+    node.subtreeW=Math.max(NODE_W, node.children.reduce((s,c)=>s+c.subtreeW,0)+COL_GAP*(node.children.length-1));
+    node.subtreeH=NODE_H+LEVEL_GAP+Math.max(...node.children.map(c=>c.subtreeH));
+  }
+}
+function positionNodes(node,x,y){
+  node.x=x;node.y=y;
+  if(!node.children)return;
+  const mode=node._childMode;
+  if(mode==='vertical'){
+    let curY=y+NODE_H+ROW_GAP;
+    node.children.forEach(c=>{positionNodes(c,x+INDENT,curY);curY+=c.subtreeH+ROW_GAP;});
+  } else {
+    const totalW=node.children.reduce((s,c)=>s+c.subtreeW,0)+COL_GAP*(node.children.length-1);
+    let curX=x+NODE_W/2-totalW/2;
+    const childY=y+NODE_H+LEVEL_GAP;
+    node.children.forEach(c=>{
+      const slotCenter=curX+c.subtreeW/2;
+      positionNodes(c,slotCenter-NODE_W/2,childY);
+      curX+=c.subtreeW+COL_GAP;
+    });
+  }
+}
 const svg=d3.select('#tree'),gViewport=d3.select('#viewport'),gLinks=d3.select('#links'),gNodes=d3.select('#nodes');
 let root,i=0,searchTerm='',hidden=new Set(),curKey='pitaco';
 const zoom=d3.zoom().scaleExtent([0.12,2]).on('zoom',e=>gViewport.attr('transform',e.transform));
@@ -539,11 +575,19 @@ function loadTree(){
   if(root.children)root.children.forEach(c=>{if(c.children)c.children.forEach(collapse);});
   update(root);setTimeout(fitToScreen,60);}
 
-function elbowPath(sx,sy,tx,ty){return `M${sx},${sy} V${ty} H${tx}`;}
+function linkPath(mode,sx,sy,tx,ty){
+  if(mode==='vertical') return `M${sx},${sy} V${ty} H${tx}`;
+  const midY=(sy+ty)/2;
+  return `M${sx},${sy} V${midY} H${tx} V${ty}`;
+}
+function anchorPoints(mode,nx,ny,tx,ty){
+  if(mode==='vertical') return {sx:nx+22, sy:ny+NODE_H/2, tx2:tx, ty2:ty+NODE_H/2};
+  return {sx:nx+NODE_W/2, sy:ny+NODE_H, tx2:tx+NODE_W/2, ty2:ty};
+}
 
 function update(source){
-  const nodes=[];let row=0;
-  root.eachBefore(d=>{d.x=d.depth*INDENT;d.y=row*ROW_H;row++;nodes.push(d);});
+  measure(root);positionNodes(root,0,0);
+  const nodes=root.descendants();
   const links=root.links();
   const onPath=new Set();
   if(searchTerm)root.each(d=>{if(matchesSearch(d)){let a=d;while(a){onPath.add(a);a=a.parent;}}});
@@ -558,8 +602,12 @@ function update(source){
       <div class="node-role">Estructura antes de la adquisición</div></div>`;}
     const kids=(d.children?d.children.length:0)+(d._children?d._children.length:0);
     const collapsed=!!d._children,tot=totalDesc(d);
-    const chev=kids?`<span class="chev">${collapsed?'▸':'▾'}</span>`:`<span class="chev-spacer"></span>`;
-    const countTag=(kids&&collapsed)?`<span class="tag count">+${tot}</span>`:'';
+    const childMode=modeForDepth(d.depth+1);
+    const useChev=kids&&childMode==='vertical';
+    const usePill=kids&&childMode==='horizontal';
+    const chev=useChev?`<span class="chev">${collapsed?'▸':'▾'}</span>`:`<span class="chev-spacer"></span>`;
+    const countTag=(useChev&&collapsed)?`<span class="tag count">+${tot}</span>`:'';
+    const pill=usePill?`<div class="toggle">${collapsed?'+'+tot:'−'}</div>`:'';
     const st=STATUS[p.status];
     const dept=p.dept?`<span class="tag dept">${p.dept}</span>`:'';
     const statusTag=`<span class="tag status">${st?st.label:''}</span>`;
@@ -571,7 +619,7 @@ function update(source){
           <div class="node-role">${(p.role||'').trim()||'—'}</div>
           <div class="node-tags">${statusTag}${dept}${countTag}</div>
         </div>
-      </div></div>`;});
+      </div></div>${pill}`;});
   all.classed('dim',d=>{const p=d.data.data;if(p.synthRoot)return false;return hidden.has(p.cat);})
      .classed('match',d=>matchesSearch(d));
   all.transition().duration(400).attr('transform',d=>`translate(${d.x},${d.y})`).style('opacity',1);
@@ -579,11 +627,16 @@ function update(source){
     if(d.children){d._children=d.children;d.children=null;}else if(d._children){d.children=d._children;d._children=null;}update(d);});
   node.exit().transition().duration(280).attr('transform',()=>`translate(${source.x},${source.y})`).style('opacity',0).remove();
   const link=gLinks.selectAll('path.link').data(links,d=>d.target.id);
-  const le=link.enter().insert('path','g').attr('class','link').attr('d',()=>{const sx=source.x0+22,sy=source.y0+NODE_H/2;return elbowPath(sx,sy,sx,sy);});
+  const le=link.enter().insert('path','g').attr('class','link').attr('d',()=>{
+    const m=modeForDepth(source.depth+1);const a=anchorPoints(m,source.x0,source.y0,source.x0,source.y0);
+    return linkPath(m,a.sx,a.sy,a.sx,a.sy);});
   le.merge(link).transition().duration(400)
     .attr('class',d=>onPath.has(d.target)&&onPath.has(d.source)?'link on-path':'link')
-    .attr('d',d=>{const sx=d.source.x+22,sy=d.source.y+NODE_H/2,tx=d.target.x,ty=d.target.y+NODE_H/2;return elbowPath(sx,sy,tx,ty);});
-  link.exit().transition().duration(280).attr('d',()=>{const sx=source.x+22,sy=source.y+NODE_H/2;return elbowPath(sx,sy,sx,sy);}).remove();
+    .attr('d',d=>{const m=modeForDepth(d.target.depth);const a=anchorPoints(m,d.source.x,d.source.y,d.target.x,d.target.y);
+      return linkPath(m,a.sx,a.sy,a.tx2,a.ty2);});
+  link.exit().transition().duration(280).attr('d',()=>{
+    const m=modeForDepth(source.depth+1);const a=anchorPoints(m,source.x,source.y,source.x,source.y);
+    return linkPath(m,a.sx,a.sy,a.sx,a.sy);}).remove();
   nodes.forEach(d=>{d.x0=d.x;d.y0=d.y;});}
 
 function fitToScreen(){const b=gNodes.node().getBBox();if(!b.width)return;
