@@ -79,6 +79,11 @@
   .st-root{border-left-color:var(--ink);background:var(--ink)}
   .st-root .node-name,.st-root .node-role{color:#fff}
 
+  .sc-global{border-left-color:var(--inv);background:var(--inv-wash)}   .sc-global .tag.status{background:var(--inv-bg);color:var(--inv-tx)}
+  .sc-mx{border-left-color:var(--vol);background:var(--vol-wash)}       .sc-mx .tag.status{background:var(--vol-bg);color:var(--vol-tx)}
+  .sc-br{border-left-color:var(--lmay);background:var(--lmay-wash)}     .sc-br .tag.status{background:var(--lmay-bg);color:var(--lmay-tx)}
+  .sc-other{border-left-color:var(--pdv);background:var(--pdv-wash)}    .sc-other .tag.status{background:var(--pdv-bg);color:var(--pdv-tx)}
+
   .node.dim .node-card{opacity:.24;box-shadow:none}
   .node.match .node-card{outline:3px solid #ffcf3f;outline-offset:1px}
 
@@ -126,6 +131,7 @@
     <div class="tabs" id="tabs">
       <button data-ds="pitaco" class="on">Pitaco</button>
       <button data-ds="draftea">Draftea</button>
+      <button data-ds="propuesta">Propuesta</button>
     </div>
     <div class="toprow">
       <div class="titleblock">
@@ -164,12 +170,15 @@ const SHEET_ID = '1csPussbNeV2rgwC1cwugwAfhNMmlrUWuSVXVgAOnOjU';
 const CSV = (gid) => `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=${gid}`;
 const FUENTE_PITACO  = CSV('1114075908');
 const FUENTE_DRAFTEA = CSV('793170873');
+const FUENTE_PROPUESTA = CSV('10111115');
 
 const DATASETS = {
   pitaco:  { label:'Pitaco',  kind:'people', src:FUENTE_PITACO,  csv:`Name,Brand,Diretory,Subárea,Actual Role,Propuesta roles,Direct leader,Area manager,Reason
 Adrielle Andrade Carvalho,Pitaco,Technology,,Software Engineer II,,Bento Bruno Pereira,Ricardo Augusto Gomes da Costa,
 Alana Fanny de Macedo,Pitaco,Finance,,Accounting and Tax Jr. Analyst,,Raquel Freire de Almeida,Thiago Guerrera Martins,
 Alejandro Marques Carrasco Arriagada,Pitaco,Finance,,Head of Finance,,Thiago Guerrera Martins,Thiago Guerrera Martins,PDV
+Alexander Thiago,Pitaco,Operations,,Key Account Manager,,Felipe Alves Dourado,Hugo Salinas,New Hires
+Alexandre da Costa Pires,Pitaco,Product,,UX Research,,Fabian Sarinelli,,New Hires
 Alexandre Fonseca Silva Campos,Pitaco,Technology,,Software Engineer III,,Guilherme Furlan,Ricardo Augusto Gomes da Costa,
 Allaf Lins Mendes ,Pitaco,CX,,Jr Customer Support Assistant,,Leonardo Henrique Martins da Silva ,Suzan Carolina Monteiro,
 Allison Noronha Silvério,Pitaco,Marketing,Copywriting,Sr. Copywriter,,Thiago José Cotrim do Amaral Arantes,Thiago José Cotrim do Amaral Arantes,
@@ -184,6 +193,7 @@ Andressa Martins de Oliveira,Pitaco,Operations,,Jr. Settlement Analyst,,Christia
 Andressa Stefany Queiroz Silva,Pitaco,Operations,,Jr Antifraud Analyst II,,Yure Araujo dos Santos,Cássio Vasconcelos Soares Menezes ,
 Arthur Coelho Custódio,Pitaco,Operations,,Jr Pricing Analyst,,Sávio Assunção da Costa Sá Filho,Cássio Vasconcelos Soares Menezes ,
 Athos Monteiro dos Santos,Pitaco,CX,,Customer Support Assistant,,Leticia Maria dos Santos,Suzan Carolina Monteiro,Involuntarias
+Augusto Rodrigues Modolo ,Pitaco,CX,,Customer Support Assistant,,Renan Bispo dos Santos Silva,Suzan Carolina Monteiro,New Hires
 Barbara de Paula Barbosa,Pitaco,Finance,,Procurement Analyst,,Alejandro Marques Carrasco Arriagada,Thiago Guerrera Martins,
 Beatriz Barradas Figueiredo,Pitaco,Data,,Data Scientist I,,André Hermenegildo Costa Silva,Ricardo Augusto Gomes da Costa,Layoff Marzo
 Beatriz Costa Souza ,Pitaco,CX,,Customer Support  Specialist III,,Suzan Carolina Monteiro,Suzan Carolina Monteiro,Involuntarias
@@ -198,47 +208,58 @@ Bruno Oliveira Luvisan,Pitaco,CX,,Jr Customer Support Assistant,,Leonardo Henriq
 Bruno Otto Cavalcante Vieira,Pitaco,CX,,Customer Support Assistant,,Clevson Costa Goncalves,Suzan Carolina Monteiro,Layoff Marzo
 Bruno Pereira Fornaro,Pitaco,Data,,Data Scientist II,,André Hermenegildo Costa Silva,Ricardo Augusto Gomes da Costa,
 Bruno Tenório da Silva,Pitaco,CX,,Jr Customer Support Assistant,,Leonardo Henrique Martins da Silva ,Suzan Carolina Monteiro,Involuntarias
+Caio Leandro Limeira Xavier Prazeres,Pitaco,Operations,,Key Account Manager,,Felipe Alves Dourado,Hugo Salinas,Voluntaria
 Caio Chaves Montenegro,Pitaco,Operations,,Settlement Analyst,,Christian Pereira Vaz da Silva,Cássio Vasconcelos Soares Menezes ,Layoff Mayo
+Caio Martins de Araújo,Pitaco,Operations,,Jr. Trading Analyst,,Ígor William Faria de Sá,Cássio Vasconcelos Soares Menezes ,New Hires
 Caio Menezes Thiers,Pitaco,Finance,,Treasury Manager,,Alejandro Marques Carrasco Arriagada,Thiago Guerrera Martins,
 Camila Nogueira de Abreu,Pitaco,Operations,,Sports Content Analyst,,Pedro Alves do Amaral Santos,Cássio Vasconcelos Soares Menezes ,
 Camila Reis Michelato,Pitaco,Product,,Sr. Product Manager,,João Cordani Tourinho Dantas,André Augusto Machado Santos,
 Carlos Eduardo Dias Giacomini,Pitaco,Technology,,Sr. Software Engineer,,Guilherme Furlan,Ricardo Augusto Gomes da Costa,
 Carlos Eduardo Dias Vinagre Neto,Pitaco,Technology,,Software Engineer II,,Bento Bruno Pereira,Ricardo Augusto Gomes da Costa,
 Carlos Esteves Cordova Junior,Pitaco,Data,,Staff Data Engineer,,Ricardo Augusto Gomes da Costa,Ricardo Augusto Gomes da Costa,
-Carlos Filipe Alves Lima,Pitaco,Marketing,Design,Designer,,Thiago José Cotrim do Amaral Arantes,Thiago José Cotrim do Amaral Arantes,
+Carlos Filipe Alves Lima,Pitaco,Marketing,Design,Designer,,Thiago José Cotrim do Amaral Arantes,Thiago José Cotrim do Amaral Arantes,Involuntarias
 Caroline Araújo Pereira,Pitaco,CX,,Customer Support Assistant,,Leticia Maria dos Santos,Suzan Carolina Monteiro,Layoff Mayo
 Cássio Vasconcelos Soares Menezes ,Pitaco,Operations,,Business Operations Sr. Manager,,Jens Christian Eider,André Augusto Machado Santos,PDV
 Cayo Henrique Rocon Rocha,Pitaco,CX,,Customer Support Assistant,,Leticia Maria dos Santos,Suzan Carolina Monteiro,
 Christian Pereira Vaz da Silva,Pitaco,Operations,,Jr. Settlement Team Leader,,Cássio Vasconcelos Soares Menezes ,Cássio Vasconcelos Soares Menezes ,Layoff Marzo
+Christyan Paniago Nantes,Pitaco,Technology,,Intern Data Engineer,,Andre Luis Krasinski,Ricardo Augusto Gomes da Costa,Voluntaria
 Claudio de Faria Dantas,Pitaco,Technology,,Software Engineer I,,Bento Bruno Pereira,Ricardo Augusto Gomes da Costa,
 Cleomar Felipe Rabelo Antoszczyszyn,Pitaco,Data,,Data Scientist I,,Ricardo Augusto Gomes da Costa,Ricardo Augusto Gomes da Costa,PDV
 Clevson Costa Goncalves,Pitaco,CX,,Jr CX Team Leader,,Suzan Carolina Monteiro,Suzan Carolina Monteiro,
 Daniel das Chagas Soares,Pitaco,Operations,,Jr. Market Intelligence Analyst,,Pedro Alves do Amaral Santos,Cássio Vasconcelos Soares Menezes ,Layoff Marzo
 Daniel Mousinho Figueira Vargas,Pitaco,Marketing,,Creative Manager,,Thiago José Cotrim do Amaral Arantes,Thiago José Cotrim do Amaral Arantes,
+Daniele de Oliveira Sousa,Pitaco,Technology,,Intern Software Engineer,,Pedro João Beckhauser Neto,Guilherme Furlan,Layoff Marzo
 Danilo Andrade Fontenele,Pitaco,Operations,,Trading Leader,,Cássio Vasconcelos Soares Menezes ,Cássio Vasconcelos Soares Menezes ,
 Davi Henrique Silva Guimarães,Pitaco,Technology,,SRE Engineer II,,Ricardo Augusto Gomes da Costa,Ricardo Augusto Gomes da Costa,Voluntaria
+Deborah Engiel,Pitaco,Operations,,Key Account Manager,,Felipe Alves Dourado,Hugo Salinas,New Hires
 Demetrius Moreira Panovitch,Pitaco,Technology,,Software Engineer II,,Guilherme Furlan,Ricardo Augusto Gomes da Costa,
 Diego Guimarães Pereira,Pitaco,Data,,Data Engineer II,,Ricardo Augusto Gomes da Costa,Ricardo Augusto Gomes da Costa,
+Eduardo Coracini de Oliveira ,Pitaco,Operations,,Jr. iGaming Analyst,,Ígor William Faria de Sá,Cássio Vasconcelos Soares Menezes ,New Hires
 Eduardo Vinicius Barbosa Rossi,Pitaco,Technology,,Software Engineer I,,Guilherme Furlan,Ricardo Augusto Gomes da Costa,
 Elisa Duboc de Albuquerque,Pitaco,People,,People Manager,,André Augusto Machado Santos,André Augusto Machado Santos,Layoff Mayo
 Elthon Lima Silva,Pitaco,Finance,,Accounting and Tax Analyst,,Raquel Freire de Almeida,Thiago Guerrera Martins,
 Erick Luis Moraes de Sousa,Pitaco,Technology,,Principal Software Engineer,,Ricardo Augusto Gomes da Costa,Ricardo Augusto Gomes da Costa,Voluntaria
+Fábio Guilherme da Silva Ribeiro,Pitaco,Operations,,Key Account Manager,,Thiago José Cotrim do Amaral Arantes,Thiago José Cotrim do Amaral Arantes,Voluntaria
 Fabrício Dalvi Venturim,Pitaco,Data,,Data Scientist II,,Ricardo Augusto Gomes da Costa,Ricardo Augusto Gomes da Costa,Voluntaria
 Felipe Alves Dourado,Pitaco,Finance,,FP&A Specialist,,Alejandro Marques Carrasco Arriagada,Thiago Guerrera Martins,
+Felipe Fernandes Lombardi ,Pitaco,Operations,,Key Account Manager,,Thiago José Cotrim do Amaral Arantes,Thiago José Cotrim do Amaral Arantes,Voluntaria
+Fernando Diógenes Fernandes,Pitaco,Operations,,Jr. Settlement Analyst,,Ígor William Faria de Sá,Cássio Vasconcelos Soares Menezes ,Layoff Mayo
 Fernando Franco de Lacerda Neto,Pitaco,Technology,,Software Engineer II,,Guilherme Furlan,Ricardo Augusto Gomes da Costa,
 Fernando Pedro Zandonadi Vasconcelos,Pitaco,Legal,,Head of Compliance ,,Rafael Marchetti Marcondes,Rafael Marchetti Marcondes,
 Filipe Andrade Feitosa,Pitaco,Technology,,Sr. Tech Ops,,Marcos Jai Hoon Han,Ricardo Augusto Gomes da Costa,
+Flávio Miguel Barbosa da  Silva,Pitaco,Operations,,Key Account Manager,,Thiago José Cotrim do Amaral Arantes,Thiago José Cotrim do Amaral Arantes,
 Gabriel Aguiar Mourão,Pitaco,Operations,,Jr Settlement Analyst,,Christian Pereira Vaz da Silva,Cássio Vasconcelos Soares Menezes ,
 Gabriel Henrique Dias Simplicio,Pitaco,Operations,,Jr. Market Intelligence Analyst,,Pedro Alves do Amaral Santos,Cássio Vasconcelos Soares Menezes ,Layoff Marzo
 Gabriel Marcondes Caires da Rocha,Pitaco,Data,,Data Scientist I,,André Hermenegildo Costa Silva,Ricardo Augusto Gomes da Costa,
 Gabriel Vaz de Freitas,Pitaco,CX,,Jr Customer Support Assistant,,Mirelli Carvalho Bezerra,Suzan Carolina Monteiro,Layoff Mayo
 Gabriel Victor Pinto do Vale,Pitaco,Technology,,Software Engineer III,,Guilherme Furlan,Ricardo Augusto Gomes da Costa,
 Giovanna Choinski,Pitaco,Product,,Product Designer,,Tiago Cocci Ramon,André Augusto Machado Santos,
+Graziela de Azeredo Alves,Pitaco,CX,,CX Afternoon Shift,,Clevson Costa Goncalves,Suzan Carolina Monteiro,New Hires
 Guilherme Carvalho Cunha,Pitaco,Data,,Data Scientist Intern,,Ricardo Augusto Gomes da Costa,Ricardo Augusto Gomes da Costa,Layoff Mayo
 Guilherme Furlan,Pitaco,Technology,,Engineering Sr. Manager,,Ricardo Augusto Gomes da Costa,Ricardo Augusto Gomes da Costa,
 Guilherme Henrique Kayano,Pitaco,Marketing,,Performance Specialist,,Thiago José Cotrim do Amaral Arantes,Thiago José Cotrim do Amaral Arantes,
 Guilherme Lourenço de Jesus,Pitaco,Operations,,Trading Analyst,,Ígor William Faria de Sá,Cássio Vasconcelos Soares Menezes ,
-Guilherme Nunes Martins,Pitaco,Operations,,Jr. Trading Analyst,,Ígor William Faria de Sá,Cássio Vasconcelos Soares Menezes ,
+Guilherme Nunes Martins,Pitaco,Operations,,Jr. Trading Analyst,,Ígor William Faria de Sá,Cássio Vasconcelos Soares Menezes ,Voluntaria
 Gunther Rodrigues Baessa,Pitaco,Operations,,Jr. Trading Analyst,,Ígor William Faria de Sá,Cássio Vasconcelos Soares Menezes ,
 Gustavo Costa da Silva Dias,Pitaco,People,,Assistente de Facilities,,Elisa Duboc de Albuquerque,André Augusto Machado Santos,Voluntaria
 Gustavo Jabor,Pitaco,Operations,,Jr Pricing Analyst,,Sávio Assunção da Costa Sá Filho,Cássio Vasconcelos Soares Menezes ,Layoff Marzo
@@ -248,21 +269,26 @@ Henrique Souza Prado,Pitaco,Marketing,,Head of Acquisition,,Thiago José Cotrim 
 Iago de Macedo Mendes Cavalcante,Pitaco,Product,,Sr. Product Manager,,João Cordani Tourinho Dantas,André Augusto Machado Santos,
 Igor Patrício Michels,Pitaco,Data,,Data Scientist III,,Ricardo Augusto Gomes da Costa,Ricardo Augusto Gomes da Costa,Voluntaria
 Ígor William Faria de Sá,Pitaco,Operations,,Settlement  Team Leader,,Cássio Vasconcelos Soares Menezes ,Cássio Vasconcelos Soares Menezes ,Voluntaria
+Isabela Miki Suzuki,Pitaco,Technology,,Software Engineer II,,Guilherme Furlan,Guilherme Furlan,Layoff Marzo
 Jean Lucas Flores de Morais,Pitaco,Operations,,Trading Analyst,,Sávio Assunção da Costa Sá Filho,Cássio Vasconcelos Soares Menezes ,Voluntaria
 Jens Christian Eider,Pitaco,Operations,,VP of Sportsbook,,André Augusto Machado Santos,André Augusto Machado Santos,Layoff Marzo
 Jeremias Lima Abreu,Pitaco,Technology,,Software Engineer III,,Ricardo Augusto Gomes da Costa,Ricardo Augusto Gomes da Costa,Voluntaria
 Jessica Cavalcante Barbosa,Pitaco,CX,,Jr Customer Support Assistant,,Mirelli Carvalho Bezerra,Suzan Carolina Monteiro,Voluntaria
+Jefferson França da Cruz,Pitaco,Operations,,Key Account Manager,,Felipe Alves Dourado,Hugo Salinas,Voluntaria
+Jéssica Ferreira Rubi,Pitaco,CX,,CX Afternoon Shift,,Clevson Costa Goncalves,Suzan Carolina Monteiro,New Hires
 Jéssica Kelly Araújo dos Santos,Pitaco,CX,,Jr Customer Support Assistant,,Renan Bispo dos Santos Silva,Suzan Carolina Monteiro,
 Jéssica Vitória de Sousa,Pitaco,CX,,Customer Support Assistant,,Mirelli Carvalho Bezerra,Suzan Carolina Monteiro,Involuntarias
 Joalison Allan de Medeiros Felix,Pitaco,Marketing,Motion Design,Motion Designer,,Thiago José Cotrim do Amaral Arantes,Thiago José Cotrim do Amaral Arantes,
 João Alberto Figueiredo Sequeira,Pitaco,Data,,Data Scientist III,,Ricardo Augusto Gomes da Costa,Ricardo Augusto Gomes da Costa,
 João Cordani Tourinho Dantas,Pitaco,Product,,Head of Product ,,André Augusto Machado Santos,André Augusto Machado Santos,Voluntaria
+Joao Fillipe  Coutinho,Pitaco,Operations,,Key Account Manager,,Felipe Alves Dourado,Hugo Salinas,New Hires
 João Henrique Santana,Pitaco,Technology,,Software Engineer II,,Guilherme Furlan,Ricardo Augusto Gomes da Costa,
 João Victor Bevenuto da Silva,Pitaco,CX,,Jr Customer Support Assistant,,Renan Bispo dos Santos Silva,Suzan Carolina Monteiro,Layoff Marzo
+João Victor Batista da Silva ,Pitaco,Operations,,Key Account Manager,,Thiago José Cotrim do Amaral Arantes,Thiago José Cotrim do Amaral Arantes,
 João Victor Martins Rey ,Pitaco,Technology,,Software Engineer III,,Guilherme Furlan,Ricardo Augusto Gomes da Costa,
 João Victor Soares Aleixo,Pitaco,Technology,,Software Engineer II,,Bento Bruno Pereira,Ricardo Augusto Gomes da Costa,
 Joice Caroline Batista da Hora,Pitaco,CX,,Jr Customer Support Assistant,,Luan Julião de Freitas,Suzan Carolina Monteiro,
-Júlia Beatriz Fernandes ,Pitaco,Legal,,Legal Intern,,Rafael Marchetti Marcondes,Rafael Marchetti Marcondes,
+Júlia Beatriz Fernandes ,Pitaco,Legal,,Jr. Lawyer,,Rafael Marchetti Marcondes,Rafael Marchetti Marcondes,
 Julia Josias da Silva,Pitaco,CX,,Jr Customer Support Assistant,,Renan Bispo dos Santos Silva,Suzan Carolina Monteiro,Involuntarias
 Julia Maria Martinghi,Pitaco,Marketing,-,Key Account  ,,Rafael Marchetti Marcondes,Thiago José Cotrim do Amaral Arantes,Voluntaria
 Karine Cristina de Souza Ribeiro ,Pitaco,CX,,Jr Customer Support Assistant,,Clevson Costa Goncalves,Suzan Carolina Monteiro,Involuntarias
@@ -273,6 +299,7 @@ Laura Magdalena Porto Laprebendere,Pitaco,Marketing,,Affiliate Manager,,Thiago J
 Léo Hernandes de Vasconcelos,Pitaco,Technology,,Software Engineer III,,Guilherme Furlan,Ricardo Augusto Gomes da Costa,
 Leonardo Henrique Martins da Silva ,Pitaco,CX,,Jr CX Team Leader,,Suzan Carolina Monteiro,Suzan Carolina Monteiro,Involuntarias
 Leonardo Teixeira de Souza,Pitaco,Technology,,Tech Ops III,,Marcos Jai Hoon Han,Ricardo Augusto Gomes da Costa,
+Letícia Cruz Costa,Pitaco,Finance,,FP&A/RI Jr. Analyst,,Alejandro Marques Carrasco Arriagada,Thiago Guerrera Martins,Layoff Marzo
 Leticia Maria dos Santos,Pitaco,CX,,Team Leader,,Suzan Carolina Monteiro,Suzan Carolina Monteiro,
 Lorenzo Bertin Salvador,Pitaco,Technology,,SR. Software Engineer,,Ricardo Augusto Gomes da Costa,Ricardo Augusto Gomes da Costa,
 Luan Julião de Freitas,Pitaco,CX,,Jr CX Team Leader,,Suzan Carolina Monteiro,Suzan Carolina Monteiro,Layoff Marzo
@@ -281,31 +308,43 @@ Lucas de Azevedo de Oliveira,Pitaco,Technology,,Software Engineer I,,Pedro João
 Lucas De Souza Villar,Pitaco,Technology,,Software Engineer I,,Guilherme Furlan,Ricardo Augusto Gomes da Costa,Layoff Marzo
 Lucas Gabriel da Silva,Pitaco,People,,Jr. Human Resources Analyst,,Elisa Duboc de Albuquerque,André Augusto Machado Santos,Layoff Marzo
 Lucas Pereira Fernandes Felipe,Pitaco,Finance,,FP&A Sr Analyst,,Alejandro Marques Carrasco Arriagada,Thiago Guerrera Martins,
+Lucas Vicente Cardoso de Souza,Pitaco,Operations,,Key Account Manager,,Felipe Alves Dourado,Hugo Salinas,
+Lucas Vidal Wanderley,Pitaco,Technology,,Intern Software Engineer,,Bento Bruno Pereira,Guilherme Furlan,Layoff Mayo
+Luigi Fantauzzi Barbieri,Pitaco,Operations,,Key Account Manager,,Thiago José Cotrim do Amaral Arantes,Thiago José Cotrim do Amaral Arantes,Voluntaria
 Luís Felipe de Abreu Marciano,Pitaco,Data,,Data Scientist Intern,,Ricardo Augusto Gomes da Costa,Ricardo Augusto Gomes da Costa,Layoff Mayo
 Luis Felipe Santos Vasconcellos,Pitaco,Operations,,Customer Support Assistant,,Yure Araujo dos Santos,Cássio Vasconcelos Soares Menezes ,
 Luís Fernando Laguardia,Pitaco,Data,,Data Scientist II,,André Hermenegildo Costa Silva,Ricardo Augusto Gomes da Costa,
 Luís Gustavo Serafim Rezende de Lima,Pitaco,Operations,,Pricing Intern,,Sávio Assunção da Costa Sá Filho,Cássio Vasconcelos Soares Menezes ,Layoff Mayo
+Luísa Coutinho Coelho,Pitaco,Technology,,Intern Data Engineer,,Andre Luis Krasinski,Guilherme Furlan,Layoff Mayo
 Luiz Fernando Carvalho Cosentino,Pitaco,Finance,,Treasury Analyst,,Caio Menezes Thiers,Thiago Guerrera Martins,
 Luiz Fernando Hildelfonso Stocchi,Pitaco,Operations,,Jr. Settlement Analyst,,Christian Pereira Vaz da Silva,Cássio Vasconcelos Soares Menezes ,
 Maíra Breda Audi,Pitaco,Marketing,,CRM Manager,,Thiago José Cotrim do Amaral Arantes,Thiago José Cotrim do Amaral Arantes,
 Marcelo Amaral de Souza Filho,Pitaco,Technology,,Software Engineer I,,Bento Bruno Pereira,Ricardo Augusto Gomes da Costa,Layoff Marzo
+Marcos Fernandes Salvadori,Pitaco,Operations,,Key Account Manager,,Thiago José Cotrim do Amaral Arantes,Thiago José Cotrim do Amaral Arantes,Voluntaria
 Marcos Jai Hoon Han,Pitaco,Technology,,Information Security Manager,,Ricardo Augusto Gomes da Costa,Ricardo Augusto Gomes da Costa,
+Marcos Witness Oliveira Gomes,Pitaco,Operations,,Key Account Manager,,Thiago José Cotrim do Amaral Arantes,Thiago José Cotrim do Amaral Arantes,Voluntaria
+Maria Eduarda De Olanda Medeiros,Pitaco,People,,People Operations Assistant,,Tamiris dos Santos Silva,Paola Villagomez Moheno,New Hires
 Maria Gabriela Sales Ribeiro,Pitaco,Legal,,Jr Compliance Analyst,,Fernando Pedro Zandonadi Vasconcelos,Rafael Marchetti Marcondes,Involuntarias
 Maria Luisa Moraes Monteiro Dantas,Pitaco,Technology,,Software Engineer I,,Bento Bruno Pereira,Ricardo Augusto Gomes da Costa,
 Maria Viviane Rodrigues dos Santos ,Pitaco,CX,,Jr Customer Support Assistant,,Leonardo Henrique Martins da Silva ,Suzan Carolina Monteiro,Layoff Marzo
 Mateus Carvalho Dantas,Pitaco,Founders,,Chairman,,-,,Voluntaria
 Mathaus Silva Ramos,Pitaco,Product,,Product Designer,,Tiago Cocci Ramon,André Augusto Machado Santos,Involuntarias
 Matheus Cabral Costa,Pitaco,Operations,,Jr.Market Intelligence Analyst,,Pedro Alves do Amaral Santos,Cássio Vasconcelos Soares Menezes ,
+Matheus da Silva Juvelino,Pitaco,Technology,,Engineering Manager I,,Guilherme Furlan,Guilherme Furlan,New Hires
+Matteo Macedo Gualberto,Pitaco,CX,,Customer Support Assistant Jr,,Clevson Costa Goncalves,Suzan Carolina Monteiro,New Hires
 Milena Vieira Tonon,Pitaco,People,,Business Partner,,Elisa Duboc de Albuquerque,André Augusto Machado Santos,
+Minelli Gonçalves Rodrigues,Pitaco,Marketing,,CRM Analyst,,Maíra Breda Audi,Thiago José Cotrim do Amaral Arantes,Involuntarias
 Mirelli Carvalho Bezerra,Pitaco,CX,,Customer Support  Specialist III,,Suzan Carolina Monteiro,Suzan Carolina Monteiro,
 Pamela Carolina Barbosa Costa,Pitaco,Finance,,Accounting and Tax Sr. Analyst,,Raquel Freire de Almeida,Thiago Guerrera Martins,
 Pedro Alves do Amaral Santos,Pitaco,Operations,,Market Intelligence Leader,,Cássio Vasconcelos Soares Menezes ,Cássio Vasconcelos Soares Menezes ,
 Pedro Antonio Tostes de Lima,Pitaco,Marketing,-,key Account,,Thiago José Cotrim do Amaral Arantes,Thiago José Cotrim do Amaral Arantes,Voluntaria
+Pedro Arthur de Oliveira Barreto,Pitaco,Technology,,Intern Software Engineer,,Matheus da Silva Juvelino,Guilherme Furlan,Layoff Mayo
 Pedro Henrique Moraes Vieira,Pitaco,Technology,,Sr. Staff Software Engineer,,Ricardo Augusto Gomes da Costa,Ricardo Augusto Gomes da Costa,Voluntaria
 Pedro João Beckhauser Neto,Pitaco,Technology,,Engineering Manager I,,Guilherme Furlan,Ricardo Augusto Gomes da Costa,
 Rafael Marchetti Marcondes,Pitaco,Legal,,Chief Legal Officer,,André Augusto Machado Santos,André Augusto Machado Santos,
 Rafael Reichert Marrama,Pitaco,Product,,Sr. Designer,,Tiago Cocci Ramon,André Augusto Machado Santos,Layoff Marzo
 Rafaela Oliveira,Pitaco,People,,Human Resources Analyst,,Elisa Duboc de Albuquerque,André Augusto Machado Santos,
+Raphael Velasco Lima da Fonseca,Pitaco,Operations,,Key Account Manager,,Felipe Alves Dourado,Hugo Salinas,New Hires
 Raquel Freire de Almeida,Pitaco,Finance,,Accounting and Tax Sr. Manager,,Alejandro Marques Carrasco Arriagada,Thiago Guerrera Martins,
 Renan Bispo dos Santos Silva,Pitaco,CX,,Jr CX Team Leader,,Suzan Carolina Monteiro,Suzan Carolina Monteiro,
 Renan Fernando da Silva,Pitaco,CX,,Jr Customer Support Assistant,,Luan Julião de Freitas,Suzan Carolina Monteiro,Layoff Marzo
@@ -313,38 +352,48 @@ Ricardo Augusth Axel Rodrigues Silva,Pitaco,Legal,,Head of Legal ,,Rafael Marche
 Ricardo Augusto Gomes da Costa,Pitaco,Technology,,VP of Engineering,,André Augusto Machado Santos,André Augusto Machado Santos,Involuntarias
 Robert Nunes da Silva,Pitaco,Operations,,Jr. Settlement Analyst,,Christian Pereira Vaz da Silva,Cássio Vasconcelos Soares Menezes ,Layoff Mayo
 Robson Medeiros dos Santos ,Pitaco,CX,,Jr Customer Support Assistant,,leonardo Henrique Martins da Silva ,Suzan Carolina Monteiro,
+Rodrigo Campos Taveira,Pitaco,Operations,,Key Account Manager,,Thiago José Cotrim do Amaral Arantes,Thiago José Cotrim do Amaral Arantes,Voluntaria
 Rodrigo de Mello Simões,Pitaco,Operations,,Jr. Settlement Analyst,,Christian Pereira Vaz da Silva,Cássio Vasconcelos Soares Menezes ,Layoff Mayo
 Rodrigo Gonçalves de Magalhães,Pitaco,Marketing,,Jr Growth Analyst,,Thiago José Cotrim do Amaral Arantes,Thiago José Cotrim do Amaral Arantes,Involuntarias
 Rodrigo Patrício Honorato Almeida,Pitaco,Operations,,Settlement Analyst,,Sávio Assunção da Costa Sá Filho,Cássio Vasconcelos Soares Menezes ,Voluntaria
 Rogério da Silva Araújo Filho,Pitaco,Technology,,Software Engineer III,,Guilherme Furlan,Ricardo Augusto Gomes da Costa,
+Ruan Gomes de Oliveira Alves,Pitaco,Technology,,Platform Engineer I,,Bento Bruno Pereira,Guilherme Furlan,New Hires
 Ruann Kolvembeck Carneiro de Lima,Pitaco,Operations,,Jr. Trading Analyst,,Igor William Faria de Sá,Cássio Vasconcelos Soares Menezes ,Voluntaria
 Sávio Assunção da Costa Sá Filho,Pitaco,Operations,,Trading Analyst,,Ígor William Faria de Sá,Cássio Vasconcelos Soares Menezes ,Voluntaria
 Simony Tomé,Pitaco,People,,Payroll & Benefits Specialist,,Elisa Duboc de Albuquerque,André Augusto Machado Santos,
 Stefany Rangel Parracho,Pitaco,Marketing,,Project Assistant,,Thiago José Cotrim do Amaral Arantes,Thiago José Cotrim do Amaral Arantes,
 Suzan Carolina Monteiro,Pitaco,CX,,CX Manager,,André Augusto Machado Santos,André Augusto Machado Santos,
 Tamiris dos Santos Silva,Pitaco,People,,Culture And Happiness Sr Analyst,,Elisa Duboc de Albuquerque,André Augusto Machado Santos,
+Tandary Freitas Silva ,Pitaco,Operations,,Jr Pricing Analyst,,Sávio Assunção da Costa Sá Filho,Cássio Vasconcelos Soares Menezes ,Involuntarias
 Thaís Denise Espínola Rocine de Almeida,Pitaco,Technology,,Software Engineer I,,Guilherme Furlan,Ricardo Augusto Gomes da Costa,Voluntaria
 Thaís Ribeiro Lauriano ,Pitaco,Technology,,Software Engineer I,,Guilherme Furlan,Ricardo Augusto Gomes da Costa,
 Thales Castro de Oliveira,Pitaco,Technology,,Sr. Software Engineer,,Ricardo Augusto Gomes da Costa,Ricardo Augusto Gomes da Costa,
 Thamyres Morais Silva,Pitaco,Finance,,Treasury Jr. Analyst,,Caio Menezes Thiers,Thiago Guerrera Martins,
 Thiago de Oliveira Cruz,Pitaco,Data,,Data Scientist III,,Ricardo Augusto Gomes da Costa,Ricardo Augusto Gomes da Costa,Voluntaria
-Thiago Guerrera Martins,Pitaco,Finance,,CFO,,André Augusto Machado Santos,André Augusto Machado Santos,Involuntarias
+Thiago Guerrera Martins,Pitaco,Finance,,CFO,,André Augusto Machado Santos,André Augusto Machado Santos,Layoff Marzo
+Thiago Henrique dos Santos Cardoso,Pitaco,Technology,,Software Engineer I,,Pedro João Beckhauser Neto,Guilherme Furlan,New Hires
 Thiago José Cotrim do Amaral Arantes,Pitaco,Marketing,,VP of Marketing,,André Augusto Machado Santos,André Augusto Machado Santos,
 Thiago Lopes Pereira,Pitaco,Operations,,Jr. Market Intelligence Analyst,,Pedro Alves do Amaral Santos,Cássio Vasconcelos Soares Menezes ,
+Thiago Nadim Martinho,Pitaco,Technology,,Intern Software Engineer,,Matheus da Silva Juvelino,Guilherme Furlan,Layoff Mayo
 Tiago Cocci Ramon,Pitaco,Product,,Staff Product Designer,,André Augusto Machado Santos,André Augusto Machado Santos,
 Vanessa Berwanger Wille ,Pitaco,Data,,Data Scientist II,,André Hermenegildo Costa Silva,Ricardo Augusto Gomes da Costa,
+Veron amorim Macêdo ,Pitaco,Operations,,Jr Trading Analyst,,Ígor William Faria de Sá,cássio Vasconcelos Soares Menezes ,New Hires
 Victor Rodrigues Russo,Pitaco,Technology,,Software Engineer III,,Guilherme Furlan,Ricardo Augusto Gomes da Costa,
 Victor Sérgio de Souza Azevedo,Pitaco,Operations,,Jr. Trading Analyst,,Ígor William Faria de Sá,Cássio Vasconcelos Soares Menezes ,
 Vinicius Borges,Pitaco,CX,,Jr Customer Support Assistant,,Leonardo Henrique Martins da Silva ,Suzan Carolina Monteiro,Layoff Marzo
 Vinicius Nunes Carvalho,Pitaco,Finance,,Treasury Jr. Analyst,,Caio Menezes Thiers,Thiago Guerrera Martins,
 Vinicius Remorino Cezario,Pitaco,Marketing,Content,Content Manager,,Thiago José Cotrim do Amaral Arantes,Thiago José Cotrim do Amaral Arantes,
+Vinicius Souza Gonçales,Pitaco,Marketing,,Affiliate Manager,,Thiago José Cotrim do Amaral Arantes,Thiago José Cotrim do Amaral Arantes,New Hires
 Vitor Nicolao Fonseca,Pitaco,Marketing,-,Key Account ,,Rafael Marchetti Marcondes,Thiago José Cotrim do Amaral Arantes,
 Vitor Paiva Cedro,Pitaco,Marketing,Design,Designer Coordinator,,Thiago José Cotrim do Amaral Arantes,Thiago José Cotrim do Amaral Arantes,
+Vitor Sanchez Santos,Pitaco,Marketing,,Key Account Manager,,Thiago José Cotrim do Amaral Arantes,Thiago José Cotrim do Amaral Arantes,
 Vitor Vilela Carvalho Ferreira,Pitaco,Operations,,Manager de Cassino,,André Augusto Machado Santos,André Augusto Machado Santos,
 Vitoria Schelbauer Trentin,Pitaco,Legal,,Jr. Compliance,,Fernando Pedro Zandonadi Vasconcelos,Rafael Marchetti Marcondes,
 Washington da Silva Farias,Pitaco,CX,,Customer Support Assistant,,Leticia Maria dos Santos,Suzan Carolina Monteiro,Layoff Mayo
+Yan de Mello Maia Martins Coutinho,Pitaco,Marketing,,Key Account Manager,,Thiago José Cotrim do Amaral Arantes,Thiago José Cotrim do Amaral Arantes,
 Yure Araujo dos Santos,Pitaco,Operations,,Sr. Business Operations Analyst,,André Augusto Machado Santos,André Augusto Machado Santos,PDV
-Yuri Inoue Duarte,Pitaco,Marketing,Motion Design,Motion Designer,,Thiago José Cotrim do Amaral Arantes,Thiago José Cotrim do Amaral Arantes,` },
+Yuri Inoue Duarte,Pitaco,Marketing,Motion Design,Motion Designer,,Thiago José Cotrim do Amaral Arantes,Thiago José Cotrim do Amaral Arantes,
+Yuri Pereira Lopes,Pitaco,Marketing,,Key Account Manager,,Thiago José Cotrim do Amaral Arantes,Thiago José Cotrim do Amaral Arantes,Voluntaria` },
   draftea: { label:'Draftea', kind:'people', src:FUENTE_DRAFTEA, csv:`Name,Brand,Diretory,Subárea,Actual Role,Area manager,Direct leader,Reason
 Agustin Alejandro Silio,Draftea,Engineering,Backend,Software Engineer,Joe Cohen,Leandro Mancini,
 Agustin de Sautu Riestra,Draftea,Engineering,Backend,Tech Lead,Joe Cohen,Joe Cohen,
@@ -445,6 +494,195 @@ Tomas Franceschin,Draftea,Marketing,Management,Head of Marketing,Raúl Colás,Ra
 Tomas Bayo,Draftea,Legal,Legal,Head of Legal,Alán Jaime,Alán Jaime,Voluntaria
 Valeria Scotti,Draftea,Producto,Product,Business Analyst,Renata Quintero,Renata Quintero,
 Vicente Mardones Perez,Draftea,People,People,Talent Acquisition,Paola Villagomez,Camila Cofre,` },
+  propuesta: { label:'Propuesta', kind:'roles', src:FUENTE_PROPUESTA, csv:`Rol,Área,Alcance,Reporte Directo,Track
+CMO,Marketing,Global,CEO,Management
+Head de Marketing BR,Marketing,Brasil,CMO,Management
+Marketing Analyst,Marketing,Brasil,Head de Marketing BR,IC
+Brand Manager BR,Marketing,Brasil,Head de Marketing BR,Management
+Brand Specialist,Marketing,Brasil,Brand Manager BR,IC
+Head de Marketing MX,Marketing,México,CMO,Management
+Marketing Analyst,Marketing,México,Head de Marketing MX,IC
+Brand Manager MX,Marketing,México,Head de Marketing MX,Management
+Brand Specialist,Marketing,México,Brand Manager MX,IC
+Head of Performance,Marketing,Global,CMO,Management
+Performance Specialist MX,Marketing,México,Head of Performance,IC
+Performance Analyst,Marketing,México,Head of Performance,IC
+Performance Specialist BR,Marketing,Brasil,Head of Performance,IC
+Performance Analyst,Marketing,Brasil,Head of Performance,IC
+Data,Marketing,Global,Head of Performance,IC
+Data,Marketing,Global,Head of Performance,IC
+Head of Creative,Marketing,Global,CMO,Management
+Creative Strategist,Marketing,Global,Head of Creative,IC
+Motion Designer,Marketing,Global,Head of Creative,IC
+Motion Designer,Marketing,Global,Head of Creative,IC
+Motion Designer,Marketing,Global,Head of Creative,IC
+Motion Designer,Marketing,Global,Head of Creative,IC
+Motion Designer,Marketing,Global,Head of Creative,IC
+Motion Designer,Marketing,Global,Head of Creative,IC
+Copywriter MX,Marketing,México,Head of Creative,IC
+Copywriter BR,Marketing,Brasil,Head of Creative,IC
+CLO,Legal,Global,CEO,Management
+Legal Manager,Legal,Global,CLO,Management
+Lawyer BR,Legal,Brasil,Legal Manager,IC
+Lawyer MX,Legal,México,Legal Manager,IC
+Regulatory Manager,Legal,Brasil,CLO,Management
+Compliance Manager,Legal,Global,CLO,Management
+Compliance Specialist BR,Legal,Brasil,Compliance Manager,IC
+Head of Finance,Finance,Global,CEO,Management
+Finance Associate MX,Finance,México,Head of Finance,IC
+Treasury Manager MX,Finance,México,Head of Finance,Management
+Treasury Analyst MX,Finance,México,Treasury Manager MX,IC
+Treasury Analyst MX,Finance,México,Treasury Manager MX,IC
+Treasury Manager BR,Finance,Brasil,Head of Finance,Management
+Treasury Analyst BR,Finance,Brasil,Treasury Manager BR,IC
+Treasury Analyst BR,Finance,Brasil,Treasury Manager BR,IC
+Accounting & Tax Manager BR,Finance,Brasil,Head of Finance,Management
+Accounting & Tax Analyst,Finance,Brasil,Accounting & Tax Manager BR,IC
+Accounting & Tax Analyst,Finance,Brasil,Accounting & Tax Manager BR,IC
+FP&A Manager BR,Finance,Brasil,Head of Finance,Management
+FP&A Analyst BR,Finance,Brasil,FP&A Manager BR,IC
+FP&A Analyst BR,Finance,Brasil,FP&A Manager BR,IC
+Head of People,People,Global,CEO,Management
+People Manager,People,Global,Head of People,Management
+Talent Aquisition Specialist,People,México,People Manager,IC
+Talent Aquisition Specialist,People,Brasil,People Manager,IC
+Payroll & Benefits Manager,People,Brasil,Head of People,Management
+Payroll & Benefits Analyst,People,Brasil,Payroll & Benefits Manager,IC
+Culture & Happiness Lead,People,Global,Head of People,IC
+Culture & Happiness Assistant,People,Brasil,Head of People,IC
+VP of Product,Product,Global,CEO,Management
+Product Manager,Product,Global,VP of Product,IC
+Product Manager,Product,Global,VP of Product,IC
+Product Manager,Product,Global,VP of Product,IC
+Product Manager,Product,Global,VP of Product,IC
+Product Manager,Product,Global,VP of Product,IC
+Business Analyst,Product,Global,VP of Product,IC
+Product Operations,Product,Global,VP of Product,IC
+Product Design Manager,Product,Global,VP of Product,Management
+Product Designer,Product,Global,Product Design Manager,IC
+Product Designer,Product,Global,Product Design Manager,IC
+Product Designer,Product,Global,Product Design Manager,IC
+Product Designer,Product,Global,Product Design Manager,IC
+UX Research Manager,Product,Global,Product Design Manager,Management
+UX Research Specialist,Product,Brasil,UX Research Manager,IC
+CTO,Engineering,Global,CEO,Management
+Staff Engineer Backend,Engineering,Global,CTO,IC
+Staff Engineer Mobile,Engineering,Global,CTO,IC
+Head of Engineering - Sportsbook Core,Engineering,Global,CTO,Management
+Tech Lead,Engineering,Global,Head of Engineering - Sportsbook Core,IC
+Software Engineer Backend,Engineering,Global,Head of Engineering - Sportsbook Core,IC
+Software Engineer Backend,Engineering,Global,Head of Engineering - Sportsbook Core,IC
+Software Engineer Backend,Engineering,Global,Head of Engineering - Sportsbook Core,IC
+Software Engineer Backend,Engineering,Global,Head of Engineering - Sportsbook Core,IC
+Software Engineer Mobile,Engineering,Global,Head of Engineering - Sportsbook Core,IC
+Software Engineer Mobile,Engineering,Global,Head of Engineering - Sportsbook Core,IC
+Engineering Manager - Sportsbook Core,Engineering,Global,Head of Engineering - Sportsbook Core,Management
+Software Engineer Backend,Engineering,Global,Software Engineer Backend,IC
+Software Engineer Backend,Engineering,Global,Software Engineer Backend,IC
+Software Engineer Backend,Engineering,Global,Software Engineer Backend,IC
+Software Engineer Backend,Engineering,Global,Software Engineer Backend,IC
+Software Engineer Mobile,Engineering,Global,Software Engineer Backend,IC
+Software Engineer Mobile,Engineering,Global,Software Engineer Backend,IC
+Head of Engineering - Sportsbook Experience,Engineering,Global,CTO,Management
+Tech Lead,Engineering,Global,Head of Engineering - Sportsbook Experience,IC
+Software Engineer Backend,Engineering,Global,Head of Engineering - Sportsbook Experience,IC
+Software Engineer Backend,Engineering,Global,Head of Engineering - Sportsbook Experience,IC
+Software Engineer Backend,Engineering,Global,Head of Engineering - Sportsbook Experience,IC
+Software Engineer Backend,Engineering,Global,Head of Engineering - Sportsbook Experience,IC
+Software Engineer Mobile,Engineering,Global,Head of Engineering - Sportsbook Experience,IC
+Software Engineer Mobile,Engineering,Global,Head of Engineering - Sportsbook Experience,IC
+Engineering Manager - Player Growth,Engineering,Global,Head of Engineering - Sportsbook Experience,Management
+Software Engineer Backend,Engineering,Global,Engineering Manager - Player Growth,IC
+Software Engineer Backend,Engineering,Global,Engineering Manager - Player Growth,IC
+Software Engineer Backend,Engineering,Global,Engineering Manager - Player Growth,IC
+Software Engineer Backend,Engineering,Global,Engineering Manager - Player Growth,IC
+Software Engineer Mobile,Engineering,Global,Engineering Manager - Player Growth,IC
+Software Engineer Mobile,Engineering,Global,Engineering Manager - Player Growth,IC
+Head of Engineering - Wallet & Trust & iGaming,Engineering,Global,CTO,Management
+Tech Lead,Engineering,Global,Head of Engineering - Wallet & Trust & iGaming,IC
+Software Engineer Backend,Engineering,Global,Head of Engineering - Wallet & Trust & iGaming,IC
+Software Engineer Backend,Engineering,Global,Head of Engineering - Wallet & Trust & iGaming,IC
+Software Engineer Backend,Engineering,Global,Head of Engineering - Wallet & Trust & iGaming,IC
+Software Engineer Backend,Engineering,Global,Head of Engineering - Wallet & Trust & iGaming,IC
+Software Engineer Backend,Engineering,Global,Head of Engineering - Wallet & Trust & iGaming,IC
+Software Engineer Mobile,Engineering,Global,Head of Engineering - Wallet & Trust & iGaming,IC
+Engineering Manager - Wallet & Trust,Engineering,Global,Head of Engineering - Wallet & Trust & iGaming,Management
+Software Engineer Backend,Engineering,Global,Engineering Manager - Wallet & Trust,IC
+Software Engineer Backend,Engineering,Global,Engineering Manager - Wallet & Trust,IC
+Software Engineer Backend,Engineering,Global,Engineering Manager - Wallet & Trust,IC
+Software Engineer Backend,Engineering,Global,Engineering Manager - Wallet & Trust,IC
+Software Engineer Backend,Engineering,Global,Engineering Manager - Wallet & Trust,IC
+Software Engineer Mobile,Engineering,Global,Engineering Manager - Wallet & Trust,IC
+Engineering Manager Platform,Engineering,Global,CTO,Management
+Tech Lead,Engineering,Global,Engineering Manager Platform,IC
+Software Engineer Backend,Engineering,Global,Engineering Manager Platform,IC
+Software Engineer Backend,Engineering,Global,Engineering Manager Platform,IC
+Software Engineer Backend,Engineering,Global,Engineering Manager Platform,IC
+Software Engineer Backend,Engineering,Global,Engineering Manager Platform,IC
+Software Engineer Backend,Engineering,Global,Engineering Manager Platform,IC
+TechOps Manager,Engineering,Global,CTO,Management
+TechOps Specialist,Engineering,Global,TechOps Manager,IC
+TechOps Specialist,Engineering,Global,TechOps Manager,IC
+Head of Data,Engineering,Global,CTO,Management
+Data Engineer Lead,Engineering,Global,Head of Data,IC
+Data Engineer,Engineering,Global,Head of Data,IC
+Data Engineer,Engineering,Global,Head of Data,IC
+Data Engineer,Engineering,Global,Head of Data,IC
+Data Engineer,Engineering,Global,Head of Data,IC
+Analytics Engineer,Engineering,Global,Head of Data,IC
+Analytics Engineer,Engineering,Global,Head of Data,IC
+Data Scientist Lead,Engineering,Global,Head of Data,IC
+Data Scientist,Engineering,Global,Head of Data,IC
+VP of RevOps,RevOps,Global,CEO,Management
+Head of Customer Experience,RevOps,Global,VP of RevOps,Management
+Customer Experience Manager BR,RevOps,Brasil,Head of Customer Experience,Management
+Customer Experience Coordinator BR,RevOps,Brasil,Customer Experience Manager BR,IC
+Customer Experience Specialist BR,RevOps,Brasil,Customer Experience Manager BR,IC
+Customer Experience Specialist BR,RevOps,Brasil,Customer Experience Manager BR,IC
+Customer Experience Specialist BR,RevOps,Brasil,Customer Experience Manager BR,IC
+Customer Experience Specialist BR,RevOps,Brasil,Customer Experience Manager BR,IC
+Customer Experience Specialist BR,RevOps,Brasil,Customer Experience Manager BR,IC
+Customer Experience Specialist BR,RevOps,Brasil,Customer Experience Manager BR,IC
+Customer Experience Specialist BR,RevOps,Brasil,Customer Experience Manager BR,IC
+Customer Experience Analyst BR,RevOps,Brasil,Customer Experience Manager BR,IC
+Customer Experience Analyst BR,RevOps,Brasil,Customer Experience Manager BR,IC
+Customer Experience Analyst BR,RevOps,Brasil,Customer Experience Manager BR,IC
+Customer Experience Analyst BR,RevOps,Brasil,Customer Experience Manager BR,IC
+Customer Experience Manager MX,RevOps,México,Head of Customer Experience,Management
+Customer Experience Coordinator MX,RevOps,México,Customer Experience Manager MX,IC
+Customer Experience Specialist MX,RevOps,México,Customer Experience Manager MX,IC
+Customer Experience Specialist MX,RevOps,México,Customer Experience Manager MX,IC
+Customer Experience Specialist MX,RevOps,México,Customer Experience Manager MX,IC
+Customer Experience Specialist MX,RevOps,México,Customer Experience Manager MX,IC
+Customer Experience Analyst MX,RevOps,México,Customer Experience Manager MX,IC
+Customer Experience Analyst MX,RevOps,México,Customer Experience Manager MX,IC
+Fraud Manager,RevOps,Global,VP of RevOps,Management
+Fraud Lead MX,RevOps,México,Fraud Manager,IC
+Fraud Operator,RevOps,México,Fraud Manager,IC
+Fraud Operator,RevOps,México,Fraud Manager,IC
+Fraud Lead BR,RevOps,Brasil,Fraud Manager,IC
+Fraud Operator,RevOps,Brasil,Fraud Manager,IC
+Fraud Operator,RevOps,Brasil,Fraud Manager,IC
+Fraud Operator,RevOps,Brasil,Fraud Manager,IC
+Trading Manager,RevOps,Global,VP of RevOps,Management
+Trading Coordinator MX,RevOps,México,Trading Manager,IC
+Trader,RevOps,México,Trading Manager,IC
+Trader,RevOps,México,Trading Manager,IC
+Trader,RevOps,México,Trading Manager,IC
+Trader,RevOps,México,Trading Manager,IC
+Trading Coordinator BR,RevOps,Brasil,Trading Manager,IC
+Trader,RevOps,Brasil,Trading Manager,IC
+Trader,RevOps,Brasil,Trading Manager,IC
+Trader,RevOps,Brasil,Trading Manager,IC
+Trader,RevOps,Brasil,Trading Manager,IC
+Revenue Manager,RevOps,Global,VP of RevOps,Management
+Revenue Analyst,RevOps,México,Revenue Manager,IC
+Revenue Analyst,RevOps,México,Revenue Manager,IC
+Revenue Analyst,RevOps,Brasil,Revenue Manager,IC
+Revenue Analyst,RevOps,Brasil,Revenue Manager,IC
+iGaming Manager,RevOps,Brasil,VP of RevOps,Management
+iGaming Specialist,RevOps,Brasil,iGaming Manager,IC
+VIP's Manager,RevOps,Brasil,Revenue Manager,Management` },
 };
 
 const STATUS = {
@@ -479,7 +717,7 @@ function headerKey(h){const n=norm(h);
 
 const PARTICLES=new Set(['de','da','do','dos','das','del','la','von','van','di','du']);
 let MODEL=null;
-function buildModel(csvText){ return buildModelPeople(csvText); }
+function buildModel(csvText){ return DATASETS[curKey].kind==='roles' ? buildModelRoles(csvText) : buildModelPeople(csvText); }
 function buildModelPeople(csvText){
   const rows=parseCSV(csvText); const header=rows[0].map(headerKey); const people=[];
   for(let r=1;r<rows.length;r++){const rec={};rows[r].forEach((v,i)=>{if(header[i])rec[header[i]]=(v||'').trim();});if(rec.name)people.push(rec);}
@@ -503,6 +741,44 @@ function buildModelPeople(csvText){
   const counts={};LEGEND_ORDER.forEach(k=>counts[k]=0);people.forEach(p=>counts[p.status]++);
   MODEL={people,parentOf,roots,counts,kind:'people',catMap:STATUS,catOrder:LEGEND_ORDER};return MODEL;}
 
+const ROLE_TIERS = {
+  global:{cls:'sc-global', color:'#7c5cff', label:'Global'},
+  mx:{cls:'sc-mx', color:'#3b82c4', label:'México'},
+  br:{cls:'sc-br', color:'#e08a2b', label:'Brasil'},
+  other:{cls:'sc-other', color:'#8b93a7', label:'Otro'},
+};
+const ROLE_TIER_ORDER=['global','mx','br','other'];
+function roleScope(alcance){
+  const a=norm(alcance);
+  if(a==='global') return 'global';
+  if(a.includes('mexico')) return 'mx';
+  if(a.includes('brasil')) return 'br';
+  return 'other';
+}
+function headerKeyRoles(h){const n=norm(h);
+  if(n==='rol')return 'name';
+  if(n==='area'||n==='área')return 'dept';
+  if(n==='alcance')return 'role';
+  if(n==='reporte directo')return 'leader';
+  if(n==='track')return 'track';
+  return null;}
+function buildModelRoles(csvText){
+  const rows=parseCSV(csvText); const header=rows[0].map(headerKeyRoles); const people=[];
+  for(let r=1;r<rows.length;r++){const rec={};rows[r].forEach((v,i)=>{if(header[i])rec[header[i]]=(v||'').trim();});if(rec.name)people.push(rec);}
+  people.forEach((p,i)=>{p._i=i;p._n=norm(p.name);p._tok=p._n.split(' ').filter(Boolean);p.tier=roleScope(p.role);p.status=p.tier;p.cat=p.status;});
+  const byName=new Map();people.forEach(p=>{if(!byName.has(p._n))byName.set(p._n,p);});
+  function resolve(nameRaw,self){const key=norm(nameRaw);if(!key)return null;
+    if(byName.has(key)){const p=byName.get(key);return p._i===self?null:p._i;}
+    return null;}
+  const parentOf=new Array(people.length).fill(null);const roots=[];
+  people.forEach(p=>{const lead=norm(p.leader);
+    if(!lead){roots.push(p._i);parentOf[p._i]='ROOTNODE';return;}
+    const pi=resolve(p.leader,p._i);
+    parentOf[p._i]=(pi===null?'ORPHAN':pi);});
+  people.forEach(p=>{if(parentOf[p._i]==='ORPHAN')parentOf[p._i]='ROOTNODE';});
+  const counts={};ROLE_TIER_ORDER.forEach(k=>counts[k]=0);people.forEach(p=>counts[p.tier]++);
+  MODEL={people,parentOf,roots,counts,kind:'roles',catMap:ROLE_TIERS,catOrder:ROLE_TIER_ORDER};return MODEL;}
+
 const SYN_ROOT={_i:-1,name:'',role:'',dept:'',status:'root',synthRoot:true};
 function tierRank(p){const r=norm(p.role);
   if(/chairman/.test(r))return 0;
@@ -523,6 +799,22 @@ function buildNested(){
   const top=(kids.get('ROOT')||[]).filter(c=>!visited.has(c)).map(make);
   top.sort((a,b)=>{const t=rankFn(a.data)-rankFn(b.data);return t||a.data.name.localeCompare(b.data.name,'es');});
   return {data:SYN_ROOT,children:top};}
+
+const ROLE_TIER_RANK={global:0,mx:1,br:2,other:3};
+function buildNestedRoles(){
+  const {people,parentOf}=MODEL; const kids=new Map();
+  const add=(k,c)=>{if(!kids.has(k))kids.set(k,[]);kids.get(k).push(c);};
+  people.forEach(p=>{if(p._i<0)return;const par=parentOf[p._i];
+    if(par==='ROOTNODE')add('ROOT',p._i);else add(par,p._i);});
+  const visited=new Set();
+  function make(idx){visited.add(idx);const p=people[idx];
+    const cs=(kids.get(idx)||[]).filter(c=>!visited.has(c)).map(make);
+    cs.sort((a,b)=>ROLE_TIER_RANK[a.data.tier]-ROLE_TIER_RANK[b.data.tier]);
+    return {data:p,children:cs};}
+  const top=(kids.get('ROOT')||[]).filter(c=>!visited.has(c)).map(make);
+  top.sort((a,b)=>ROLE_TIER_RANK[a.data.tier]-ROLE_TIER_RANK[b.data.tier]);
+  return {data:SYN_ROOT,children:top};}
+function buildNestedDispatch(){ return MODEL.kind==='roles' ? buildNestedRoles() : buildNested(); }
 
 const NODE_W=228,NODE_H=78,ROW_GAP=14,COL_GAP=24,LEVEL_GAP=40,INDENT=44;
 function modeForDepth(depth){ return depth % 2 === 1 ? 'vertical' : 'horizontal'; }
@@ -565,12 +857,12 @@ document.getElementById('stage').addEventListener('mousedown',()=>document.getEl
 window.addEventListener('mouseup',()=>document.getElementById('stage').classList.remove('grabbing'));
 function collapse(d){if(d.children){d._children=d.children;d._children.forEach(collapse);d.children=null;}}
 function totalDesc(d){const k=d.children||d._children||[];let n=k.length;k.forEach(c=>n+=totalDesc(c));return n;}
-function statusCls(p){if(p.synthRoot)return 'st-root';return STATUS[p.status]?STATUS[p.status].cls:'st-pdv';}
+function statusCls(p){if(p.synthRoot)return 'st-root';const cm=MODEL.catMap||STATUS;return cm[p.status]?cm[p.status].cls:'st-pdv';}
 function matchesSearch(d){if(!searchTerm)return false;const t=norm(searchTerm);const p=d.data.data;
   return norm(p.name).includes(t)||norm(p.role).includes(t);}
 
 function loadTree(){
-  const nested=buildNested();
+  const nested=buildNestedDispatch();
   root=d3.hierarchy(nested,d=>d.children);root.x0=0;root.y0=0;
   if(root.children)root.children.forEach(c=>{if(c.children)c.children.forEach(collapse);});
   update(root);setTimeout(fitToScreen,60);}
@@ -597,9 +889,11 @@ function update(source){
   enter.append('foreignObject').attr('width',NODE_W).attr('height',NODE_H+20).append('xhtml:div').attr('class','node-inner');
   const all=enter.merge(node);
   all.select('.node-inner').html(d=>{const p=d.data.data;
-    if(p.synthRoot){return `<div class="node-card st-root" style="height:${NODE_H}px">
-      <div class="node-name" style="font-family:var(--display);font-size:15px">${DATASETS[curKey].label}</div>
-      <div class="node-role">Estructura antes de la adquisición</div></div>`;}
+    if(p.synthRoot){
+      const isRoles=MODEL.kind==='roles';
+      return `<div class="node-card st-root" style="height:${NODE_H}px">
+      <div class="node-name" style="font-family:var(--display);font-size:15px">${isRoles?'CEO':DATASETS[curKey].label}</div>
+      <div class="node-role">${isRoles?'Propuesta de estructura':'Estructura antes de la adquisición'}</div></div>`;}
     const kids=(d.children?d.children.length:0)+(d._children?d._children.length:0);
     const collapsed=!!d._children,tot=totalDesc(d);
     const childMode=modeForDepth(d.depth+1);
@@ -608,7 +902,7 @@ function update(source){
     const chev=useChev?`<span class="chev">${collapsed?'▸':'▾'}</span>`:`<span class="chev-spacer"></span>`;
     const countTag=(useChev&&collapsed)?`<span class="tag count">+${tot}</span>`:'';
     const pill=usePill?`<div class="toggle">${collapsed?'+'+tot:'−'}</div>`:'';
-    const st=STATUS[p.status];
+    const st=(MODEL.catMap||STATUS)[p.status];
     const dept=p.dept?`<span class="tag dept">${p.dept}</span>`:'';
     const statusTag=`<span class="tag status">${st?st.label:''}</span>`;
     return `<div class="node-card ${statusCls(p)}" style="height:${NODE_H}px">
@@ -648,7 +942,18 @@ function centerOn(d,scale=0.95){const s=document.getElementById('stage').getBoun
 
 function buildKpis(){
   const cells=[];
-  {
+  if(MODEL.kind==='roles'){
+    const mgmt=MODEL.people.filter(p=>norm(p.track)==='management').length;
+    const ic=MODEL.people.length-mgmt;
+    const areas=new Set(MODEL.people.map(p=>(p.dept||'').trim())).size;
+    cells.push({v:MODEL.people.length,k:'Roles totales'});
+    cells.push({op:'·'});
+    cells.push({v:mgmt,k:'Management',color:'var(--lmay)'});
+    cells.push({op:'·'});
+    cells.push({v:ic,k:'Individual Contributor',color:'var(--pdv)'});
+    cells.push({op:'·'});
+    cells.push({v:areas,k:'Áreas'});
+  } else {
     const c=MODEL.counts,stay=c.stay,out=DEPARTURES.reduce((s,k)=>s+c[k],0),nuevos=c.new;
     const antes=stay+out,despues=stay+nuevos,pct=antes?Math.round(out/antes*100):0;
     cells.push({v:antes,k:'Antes'});
@@ -673,14 +978,18 @@ function buildKpis(){
 function renderHeader(){
   const cm=MODEL.catMap,order=MODEL.catOrder,c=MODEL.counts,denom=MODEL.people.length;
   buildKpis();
-  const st=c.stay,out=DEPARTURES.reduce((s,k)=>s+c[k],0),nv=c.new;
-  document.getElementById('barTot').textContent=(st+out)+' antes · '+(st+nv)+' después';
+  if(MODEL.kind==='roles'){
+    document.getElementById('barTot').textContent=denom+' roles propuestos';
+  } else {
+    const st=c.stay,out=DEPARTURES.reduce((s,k)=>s+c[k],0),nv=c.new;
+    document.getElementById('barTot').textContent=(st+out)+' antes · '+(st+nv)+' después';
+  }
   document.getElementById('barCap').textContent='Composición de la estructura';
   const bar=document.getElementById('bar');bar.innerHTML='';
   order.forEach(k=>{if(!c[k])return;const s=document.createElement('span');
     s.style.width=(c[k]/denom*100)+'%';s.style.background=cm[k].color;s.title=cm[k].label+': '+c[k];bar.appendChild(s);});
   const lg=document.getElementById('legend');lg.querySelectorAll('.row').forEach(n=>n.remove());
-  lg.querySelector('h3').textContent='Motivo';
+  lg.querySelector('h3').textContent = MODEL.kind==='roles' ? 'Alcance' : 'Motivo';
   order.forEach(k=>{if(!c[k])return;const row=document.createElement('div');row.className='row';if(hidden.has(k))row.classList.add('off');
     row.innerHTML=`<span class="sw" style="background:${cm[k].color}"></span><span>${cm[k].label}</span><span class="ct">${c[k]}</span>`;
     row.onclick=()=>{if(hidden.has(k))hidden.delete(k);else hidden.add(k);row.classList.toggle('off');update(root);};
@@ -695,7 +1004,8 @@ async function autoSync(key){
     const res=await fetch(u,{cache:'no-store'}); if(!res.ok) throw 0;
     const txt=await res.text();
     if(curKey!==key) return;
-    if(!/direct leader|reason/i.test(txt)) throw 0;
+    const expected = DATASETS[key].kind==='roles' ? /reporte directo/i : /direct leader|reason/i;
+    if(!expected.test(txt)) throw 0;
     buildModel(txt); renderHeader(); loadTree();
     setSync('live','Actualizado '+new Date().toLocaleString('es-CL',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}));
   }catch(e){ if(curKey===key) setSync('snap','Snapshot local'); }
@@ -705,8 +1015,8 @@ function loadDataset(key){
   const ds=DATASETS[key];
   curKey=key;hidden=new Set();searchTerm='';document.getElementById('search').value='';
   document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.ds===key));
-  document.getElementById('title').textContent=ds.label+' · Estructura antes de la adquisición';
-  SYN_ROOT.name=ds.label;
+  document.getElementById('title').textContent = ds.kind==='roles' ? 'Propuesta de estructura (sin nombres)' : ds.label+' · Estructura antes de la adquisición';
+  SYN_ROOT.name = ds.kind==='roles' ? 'CEO' : ds.label;
   buildModel(ds.csv);renderHeader();loadTree();
   autoSync(key);}
 
