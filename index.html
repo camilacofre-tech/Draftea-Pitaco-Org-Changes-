@@ -817,7 +817,11 @@ function buildNestedRoles(){
 function buildNestedDispatch(){ return MODEL.kind==='roles' ? buildNestedRoles() : buildNested(); }
 
 const NODE_W=228,NODE_H=78,ROW_GAP=14,COL_GAP=24,LEVEL_GAP=40,INDENT=44;
-function modeForDepth(depth){ return depth % 2 === 1 ? 'vertical' : 'horizontal'; }
+function modeForDepth(depth){
+  const startHorizontal = curKey==='propuesta';
+  const isOdd = depth % 2 === 1;
+  return startHorizontal ? (isOdd ? 'horizontal' : 'vertical') : (isOdd ? 'vertical' : 'horizontal');
+}
 function measure(node){
   if(!node.children){ node.subtreeW=NODE_W; node.subtreeH=NODE_H; return; }
   node.children.forEach(measure);
