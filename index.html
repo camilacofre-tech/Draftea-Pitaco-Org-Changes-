@@ -816,7 +816,8 @@ function buildNestedRoles(){
   return {data:SYN_ROOT,children:top};}
 function buildNestedDispatch(){ return MODEL.kind==='roles' ? buildNestedRoles() : buildNested(); }
 
-const NODE_W=228,NODE_H=78,ROW_GAP=14,COL_GAP=24,LEVEL_GAP=40,INDENT=44;
+let NODE_W=228,NODE_H=78;
+const ROW_GAP=14,COL_GAP=24,LEVEL_GAP=40,INDENT=44;
 function modeForDepth(depth){
   const startHorizontal = curKey==='propuesta';
   const isOdd = depth % 2 === 1;
@@ -900,24 +901,17 @@ function update(source){
       <div class="node-role">${isRoles?'Propuesta de estructura':'Estructura antes de la adquisición'}</div></div>`;}
     const kids=(d.children?d.children.length:0)+(d._children?d._children.length:0);
     const collapsed=!!d._children,tot=totalDesc(d);
-    const childMode=modeForDepth(d.depth+1);
-    const useChev=kids&&childMode==='vertical';
-    const usePill=kids&&childMode==='horizontal';
-    const chev=useChev?`<span class="chev">${collapsed?'▸':'▾'}</span>`:`<span class="chev-spacer"></span>`;
-    const countTag=(useChev&&collapsed)?`<span class="tag count">+${tot}</span>`:'';
-    const pill=usePill?`<div class="toggle">${collapsed?'+'+tot:'−'}</div>`:'';
+    const pill=kids?`<div class="toggle">${collapsed?'+'+tot:'−'}</div>`:'';
     const st=(MODEL.catMap||STATUS)[p.status];
     const dept=p.dept?`<span class="tag dept">${p.dept}</span>`:'';
     const statusTag=`<span class="tag status">${st?st.label:''}</span>`;
+    const isRolesKind=MODEL.kind==='roles';
+    const nameStyle=isRolesKind?' style="white-space:normal;overflow:visible;text-overflow:unset;line-height:1.2;"':'';
     return `<div class="node-card ${statusCls(p)}" style="height:${NODE_H}px">
-      <div style="display:flex;align-items:flex-start;gap:8px;height:100%;width:100%">
-        ${chev}
-        <div style="flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;gap:3px">
-          <div class="node-name">${p.name.trim()}</div>
-          <div class="node-role">${(p.role||'').trim()||'—'}</div>
-          <div class="node-tags">${statusTag}${dept}${countTag}</div>
-        </div>
-      </div></div>${pill}`;});
+      <div class="node-name"${nameStyle}>${p.name.trim()}</div>
+      <div class="node-role">${(p.role||'').trim()||'—'}</div>
+      <div class="node-tags">${statusTag}${dept}</div>
+      </div>${pill}`;});
   all.classed('dim',d=>{const p=d.data.data;if(p.synthRoot)return false;return hidden.has(p.cat);})
      .classed('match',d=>matchesSearch(d));
   all.transition().duration(400).attr('transform',d=>`translate(${d.x},${d.y})`).style('opacity',1);
@@ -1021,6 +1015,8 @@ function loadDataset(key){
   document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.ds===key));
   document.getElementById('title').textContent = ds.kind==='roles' ? 'Propuesta de estructura (sin nombres)' : ds.label+' · Estructura antes de la adquisición';
   SYN_ROOT.name = ds.kind==='roles' ? 'CEO' : ds.label;
+  NODE_W = ds.kind==='roles' ? 280 : 228;
+  NODE_H = ds.kind==='roles' ? 100 : 78;
   buildModel(ds.csv);renderHeader();loadTree();
   autoSync(key);}
 
